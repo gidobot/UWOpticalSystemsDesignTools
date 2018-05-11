@@ -1,0 +1,42 @@
+####################################
+*.cfgc
+/cfg/cpp/
+/cfg/*.py
+ 
+# Ignore generated docs #
+#########################
+*.dox
+*.wikidoc
+ 
+#   Eclipse stuff    #
+######################
+.project
+.cproject
+ 
+#  Qtcreator stuff  #
+#####################
+CMakeLists.txt.user
+qtcreator-*
+ 
+#   Python/PyCharm  #
+#####################
+.idea/*
+*/.idea/*
+*.pcd
+*.pyc
+ 
+*.user
+ 
+*~
+ 
+# Emacs
+.#*
+ 
+# Catkin custom files
+CATKIN_IGNORE
+ 
+# custom data files
+*.png
+*.pkl
+data_plots/*
+ 
