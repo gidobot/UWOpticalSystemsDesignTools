@@ -1,7 +1,8 @@
 __author__ = 'eiscar'
 import numpy as np
-import scipy
 import json
+import math
+from scipy.integrate import simps
 
 import logging
 logger = logging.getLogger(__name__)
@@ -19,9 +20,12 @@ class Sensor:
         self.max_shutter_time = None
         self.min_shutter_time = None
 
-        self.quantum_efficiency = [(), ()]  # List of tuples with wavelength,quantum_efficiency
+        self.quantum_efficiency_wav = []
+        self.quantum_efficiency = []  # List of tuples with wavelength,quantum_efficiency
 
         self.dark_noise = None  # In Electrons
+
+        self.initialized = False
 
     def load(self, file_path):
         """
@@ -42,28 +46,39 @@ class Sensor:
                 self.max_shutter_time = float(sensor_data["max_shutter_time"])
                 self.min_shutter_time = float(sensor_data["min_shutter_time"])
 
-                self.quantum_efficiency = zip(sensor_data["quantum_efficiency_wavelengths"],
-                                              sensor_data["quantum_efficiency"])
+                self.quantum_efficiency_wav = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]]
+                self.quantum_efficiency = [float(x) for x in sensor_data["quantum_efficiency"]]
 
                 self.dark_noise = float(sensor_data["dark_noise"])
 
             except KeyError as e:
                 print("Error parsing json data for sensor. Key not found:",e)
+
+        self.initialized = True
         return True
+
+    def get_coc(self):
+        """
+        Compute the sensor sensor circle of confusion
+        :return: Sensor diagonal in mm
+        """
+        sensor_diagonal = math.sqrt(self.get_sensor_size('x')**2 + self.get_sensor_size('y')**2)
+        sensor_diagonal /= 1000  # Convert to mm
+
+        coc = sensor_diagonal / 1500
+        return coc
 
     def get_quantum_efficiency(self, wave_length):
         """
-        Interpolate Quantum efficiency value for a
-        :param wave_length:
+        Interpolate Quantum efficiency value for a given wavelength
+        :param wave_length: Input wavelength
         :return:
         """
-        wave_lengths = map(lambda x: x[0], self.quantum_efficiency)
-        quantum_efficiencies = map(lambda x: x[1], self.quantum_efficiency)
-        return np.interp(wave_length, wave_lengths, quantum_efficiencies)
+        return np.interp(wave_length, self.quantum_efficiency_wav, self.quantum_efficiency)
 
     def compute_incident_photons(self, wavelength, exposure_time, irradiance):
         """
-        Compute the amount of incident photons
+        Compute the amount of incident photons for narrowband light
         :param wavelength: wavelength of incident light in [um]
         :param exposure_time: image shutter time in [ms]
         :param irradiance:  Incident Radiance E on sensor surface in [uW/cm^2]
@@ -84,6 +99,21 @@ class Sensor:
         quantum_efficiency = self.get_quantum_efficiency(wavelength)
         absorbed_photons = quantum_efficiency * self.compute_incident_photons(wavelength, exposure_time, irradiance)
         return absorbed_photons
+
+    def compute_absorbed_photons_broadband(self, wavelengths, incident_spectrum):
+        """
+        Compute the number of incident photons for broadband light defined as a spectrum
+        :param wavelengths: Array of wavelengths
+        :param incident_spectrum: Array with incident light spectrum defined in W/m2
+        :return:
+        """
+        h = 6.62607004 * math.pow(10,-34)  # Plancks constant m2kg/s
+        c = 299792458  # speed of light in m/s
+        lambdaspectrum = np.multiply(wavelengths*math.pow(10, -9), incident_spectrum)  # W/m
+        integral = simps(lambdaspectrum, wavelengths)  # W
+        integral /= (h*c)  # Ws2/m3kg
+
+
 
     def compute_digital_signal(self, Gain, wavelength, exposure_time, irradiance):
         """
@@ -127,12 +157,12 @@ class Sensor:
         coc = sensor_diag / 1500
         return coc
 
-
 class Lens:
     def __init__(self):
         self.name = None
-        self.focal_length = None  # In [mm]
-        self.transmittance = [(), ()] # Tuples of wavelength and transmittance (nm, %1)
+        self.focal_length = 0  # In [mm]
+        self.transmittance_wav = []
+        self.transmittance = []  # Tuples of wavelength and transmittance (nm, %1)
 
         self.initialized = False
 
@@ -151,14 +181,23 @@ class Lens:
                     return False
                 self.name = lens_data["name"]
                 self.focal_length = float(lens_data["focal_length"])
-                self.transmittance = zip(lens_data["transmittance_wavelength"],
-                                         lens_data["transmittance"])
+
+                self.transmittance = [float(x) for x in lens_data["transmittance"]]
+                self.transmittance_wav = [float(x) for x in lens_data["transmittance_wavelength"]]
 
             except KeyError as e:
                 logger.error("Error parsing json data for lens. Key not found:", e)
 
         self.initialized = True
         return True
+
+    def get_transmittance(self, wave_length):
+        """
+        Interpolate transmittance value
+        :param wave_length:
+        :return: Transmittance at given wavelength as a fraction
+        """
+        return np.interp(wave_length, self.transmittance_wav, self.transmittance)
 
     def fundamental_radiometric_relation(self, L, N, alfa):
         """
@@ -191,7 +230,8 @@ class Lens:
         if t > 1:
             logger.error("Transmittance value of %f bigger then 1", t)
             return False
-        self.transmittance = zip(list(range(400, 1001, 50)), [t] * 13)
+        self.transmittance_wav = range(400, 1001, 50)
+        self.transmittance = [t] * 13
         self.initialized = True
         return True
 
@@ -202,11 +242,44 @@ class Lens:
         """
         self.__init__()
 
-
 class Camera:
     def __init__(self):
         self.sensor = Sensor()
         self.lens = Lens()
+
+        self.housing = 'flat'
+
+    @property
+    def effective_focal_length(self):
+        """
+        Effect of underwater housings on focal length, from Lavest et al "Underwater Camera Calibration"
+        :return:
+        """
+        if self.housing == 'flat':
+            return self.lens.focal_length
+        elif self.housing == 'domed':
+            return self.lens.focal_length/1.33
+
+    def set_housing(self, housing_type):
+        """
+        Set the type of housing the camera is located in. Flat viewports affect the focal length
+        :param housing_type: Either 'flat' or 'domed'
+        :return: None
+        """
+        if housing_type == 'flat':
+            self.housing = housing_type
+        elif housing_type == 'domed':
+            self.housing = housing_type
+        else:
+            logger.error("Undefined housing type")
+
+    def initialized(self):
+        """
+        Test if both sensor and lens have been initialized
+        :return: True or False
+        """
+
+        return self.sensor.initialized and self.lens.initialized
 
     def get_angular_fov(self, axis):
         """
@@ -214,119 +287,84 @@ class Camera:
         :param axis: Either x or y
         :return: FOV in radians
         """
-        fov = np.arctan2(self.sensor.get_sensor_size(axis)/1000, 2*self.lens.focal_length)
+        fov = 2 * np.arctan2(self.sensor.get_sensor_size(axis)/1000, 2*self.effective_focal_length)
+        logger.debug("Angular FOV: %f", fov)
         return fov
 
     def get_fov(self, axis, working_distance):
         """
         Get the size of the area covered by the image
         :param axis: x or y
-        :param working_distance: Distance between the camera and the subject, in mm
-        :return: size of the area covered by the image along the given axis
+        :param working_distance: Distance between the camera and the subject
+        :return: size of the area covered by the image along the given axis in the same units as working distance
         """
-        horizontal_fov = 2 * working_distance * np.tan(self.get_angular_fov(axis)/2)
-        return horizontal_fov
+        if self.initialized():
+            fov = 2 * working_distance * np.tan(self.get_angular_fov(axis)/2)
+            return fov
+        else:
+            logger.error("Tried to cpmpute camera FOV without initializing sensor or lens")
+            return -1
 
-    def max_blur_shutter_time(self,axis, working_distance, camera_speed, blur):
+    def max_blur_shutter_time(self, axis, working_distance, camera_speed, blur):
         """
         Compute the maximum exposure time to ensure motion smaller than the specified value
         :param axis: Axis (x or y) along which the camera is moving
-        :param working_distance: Distance between the camera and the subject, in mm
-        :param camera_speed: Speed of the camera movement along the specified axis in mm/s
+        :param working_distance: Distance between the camera and the subject, in m
+        :param camera_speed: Speed of the camera movement along the specified axis in m/s
         :param blur: Maximum allowable motion blur in pixels
         :return:
         """
-        pixel_res = self.sensor.get_resolution(axis)/self.get_horizontal_fov(axis, working_distance)
+        if camera_speed <= 0:
+            logger.error("Vehicle speed has to be positive for exposure calculation")
+            return 0
+        pixel_res = self.sensor.get_resolution(axis)/self.get_fov(axis, working_distance)
         pixel_speed = camera_speed * pixel_res
         max_shutter_time = blur/pixel_speed
         return max_shutter_time
 
     def compute_depth_of_field(self, lens_aperture, focus_distance):
-        f = self.lens.focal_length
+        f = self.effective_focal_length
         c = self.sensor.get_circle_of_confusion()
         dof = (2*lens_aperture*c*f**2*focus_distance**2) / (f**4-lens_aperture**2*c**2*focus_distance**2)
         return dof
 
-
-class LightSource:
-    def __init__(self):
-        self.name = None
-        self.luminousflux = None
-        self.beam_angle = None
-        self.spectral_dist = [(), ()]  # Spectral distribution of the light source as list of tuples
-        self.initialized = False
-
-    def compute_peak_wavelength(self, T):
+    def compute_aperture(self, dof, working_distance):
         """
-        Compute the peak wavelength for a given light temperature in degrees Kelvin using Wiens displacement law
-        :param T: Light temperature in K
-        :return:  Wavelength in nm
+        Equation from https://en.wikipedia.org/wiki/Depth_of_field
+        :param coc: Circle of confusion: specs the allowable blur, in mm
+        :param dof: desired depth of field, in m
+        :param working_distance: Distance at which the camera is focused
+        :return:
         """
-        b = 2.8977729*pow(10, -3)
-        wav_length = (b/T) * pow(10, 9)
-        return wav_length
+        logger.debug("Computing aperture")
+        coc = self.sensor.get_coc()
+        df = (working_distance + dof/2) * 1000  # Convert to mm
+        dn = (working_distance - dof/2) * 1000  # Convert to mm
+        f = self.effective_focal_length
 
-    def get_photopic_eff(self):
+        N = (f**2/coc)*((df-dn)/(df*(dn-f) + dn*(df-f)))
+        return N
+
+    def compute_framerate(self, axis, working_distance, speed, overlap):
         """
-        Return a list of tuples containing the photopic efficiency curve.
-        Data obtained from http://www.cvrl.org/lumindex.htm (CIE Photopic V(λ) modified by Judd (1951))
-        :return: List of tuples. First element in tuple wavelength in nm, second element photopic efficiency
+        Compute the required framerate for a camera
+        :param axis: Axis (x or y) along which the camera is moving
+        :param working_distance: Distance between the camera and the subject, in m
+        :param speed:  Speed of the camera movement along the specified axis in m/s
+        :param overlap: Amount of overlap desired as a fraction (0-1)
+        :return: Required framerate in Hz
         """
-        photopic_eff = [(370,    0.0001), (380,    0.0004), (390,    0.0015), (400,    0.0045), (410,    0.0093),
-                        (420,    0.0175), (430,    0.0273), (440,    0.0379), (450,    0.0468), (460,    0.0600),
-                        (470,    0.0910), (480,    0.1390), (490,    0.2080), (500,    0.3230), (510,    0.5030),
-                        (520,    0.7100), (530,    0.8620), (540,    0.9540), (550,    0.9950), (560,    0.9950),
-                        (570,    0.9520), (580,    0.8700), (590,    0.7570), (600,    0.6310), (610,    0.5030),
-                        (620,    0.3810), (630,    0.2650), (640,    0.1750), (650,    0.1070), (660,    0.0610),
-                        (670,    0.0320), (680,    0.0170), (690,    0.0082), (700,    0.0041), (710,    0.0021),
-                        (720,    0.0011), (730,    0.0005), (740,    0.0002), (750,    0.0001), (760,    0.0001),
-                        (770,    0.0000)]
-        return photopic_eff
+        if overlap > 1 or overlap < 0:
+            logger.error("Overlap out of bounds for framerate calculation")
+            return 0
+        if working_distance < 0:
+            logger.error("Working distance out of bounds for framerate calculation")
+        f = speed / (self.get_fov(axis, working_distance)*(1-overlap))
+        return f
 
-    def load(self, file_path):
-        """
-        Load json with Sensor parameters
-        :param filepath: Path to the JSON file
-        :return: true if loaded correctly, false otherwise
-        """
-        with open(file_path) as f:
-            light_data = json.load(f)
-            try:
-                if not light_data[type] == "Light":
-                    return False
 
-                self.name = light_data["name"]
 
-                self.beam_angle = light_data["beam_angle"]
-                self.luminous_flux = light_data["luminous_flux"]
-                self.spectral_dist = zip(light_data["wavelengths"],
-                                         light_data["spectral_distribution"])
 
-            except KeyError as e:
-                print("Error parsing json data for sensor. Key not found:",e)
-
-    def init_generic_led_light(self, luminous_flux, beam_angle):
-        self.name = "Generic LED"
-
-        # Led parameters (mean_1, mean_2, std_1, std_2, scale_1, scale_2)
-        params = [450.70, 565.43, 11.67,  64.63,  24.49, 119.86]
-        m1, m2, s1, s2, k1, k2 = params
-        wavelength = np.linspace(400, 801, 600)
-        sp_eff = k1*scipy.stats.norm.pdf(wavelength, loc=m1, scale=s1) + \
-                 k2*scipy.stats.norm.pdf(wavelength, loc=m2, scale=s2)
-        self.spectral_dist = zip(wavelength, sp_eff)
-
-        try:
-            self.luminousflux = int(luminous_flux)
-            self.beam_angle = int(beam_angle)
-        except ValueError:
-            logger.error("Passed wrong type variable to generic led initialization")
-
-        self.initialized = True
-
-class WaterPropagation:
-    def __init__(self):
-        pass
 
 class OperationalParameters:
     def __init__(self):
@@ -337,6 +375,8 @@ class OperationalParameters:
         self.depthoffield = None
         self.bottom_type = None
 
+        self.axis = 'x'
+
     def initialize(self, alt, ovr, spe, mot, dep, bot):
         self.altitude = alt
         self.overlap = ovr
@@ -345,9 +385,12 @@ class OperationalParameters:
         self.depthoffield = dep
         self.bottom_type = bot
 
-if __name__ == "__main__":
-    light = LightSource()
-    print(light.compute_peak_wavelength(5778.0))
-    image_sensor = Sensor()
-    image_sensor.load("/home/eiscar/PyCharm_Projects/UWOpticalSystemDesigner/cfg/database.json")
-    print(list(image_sensor.quantum_efficiency))
+
+class Reflectance:
+    def __init__(self):
+        self.wavelengths = []
+        self.reflectance = []
+
+    def load(self):
+        pass
+
