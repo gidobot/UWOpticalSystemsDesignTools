@@ -3,6 +3,8 @@ import numpy as np
 import json
 import math
 from scipy.integrate import simps
+import matplotlib.pyplot as plt
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -12,18 +14,18 @@ class Sensor:
 
         self.name = None
 
-        self.resolution_x = None
-        self.resolution_y = None
+        self.resolution_x = 0
+        self.resolution_y = 0
 
-        self.pixel_size = None  # in micro meters
+        self.pixel_size = 0  # in micro meters
 
-        self.max_shutter_time = None
-        self.min_shutter_time = None
+        self.max_shutter_time = 0 # In micro seconds
+        self.min_shutter_time = 0 # In micro seconds
 
         self.quantum_efficiency_wav = []
         self.quantum_efficiency = []  # List of tuples with wavelength,quantum_efficiency
 
-        self.dark_noise = None  # In Electrons
+        self.dark_noise = 0  # In Electrons
 
         self.initialized = False
 
@@ -100,22 +102,45 @@ class Sensor:
         absorbed_photons = quantum_efficiency * self.compute_incident_photons(wavelength, exposure_time, irradiance)
         return absorbed_photons
 
-    def compute_absorbed_photons_broadband(self, wavelengths, incident_spectrum):
+    def compute_absorbed_photons_broadband(self, wavelengths, incident_spectrum, exposure_time):
         """
         Compute the number of incident photons for broadband light defined as a spectrum
-        :param wavelengths: Array of wavelengths
-        :param incident_spectrum: Array with incident light spectrum defined in W/m2
+        :param wavelengths: Array of wavelengths in nm
+        :param incident_spectrum: Array with incident light spectrum defined in W/(m2nm)
+        :param exposure_time: Exposure time of image in seconds
         :return:
         """
-        h = 6.62607004 * math.pow(10,-34)  # Plancks constant m2kg/s
+        h = 6.62607004 * math.pow(10, -34)  # Plancks constant (m2kg)/s
         c = 299792458  # speed of light in m/s
-        lambdaspectrum = np.multiply(wavelengths*math.pow(10, -9), incident_spectrum)  # W/m
-        integral = simps(lambdaspectrum, wavelengths)  # W
-        integral /= (h*c)  # Ws2/m3kg
 
+        # Weight the spectrum with the quantum efficiency curve
+        quantum_eff_spectrum = [self.get_quantum_efficiency(x) for x in wavelengths]    # Units: Dimensionless
+        absorbed_spectrum = np.multiply(quantum_eff_spectrum, incident_spectrum)        # Units: W/(m2nm)
 
+        # Weight the spectrum with the wavelength
+        lambda_spectrum = np.multiply(wavelengths, absorbed_spectrum)  # W/m2
 
-    def compute_digital_signal(self, Gain, wavelength, exposure_time, irradiance):
+        integral = simps(lambda_spectrum, np.array(wavelengths)*math.pow(10, -9))  # Wm
+        photon_density = integral / (h*c)  # Photons/m2s
+        photons = photon_density * self.get_pixel_area('m') * exposure_time
+
+        print(self.get_pixel_area('m'))
+        return photons
+
+    def compute_digital_signal_broadband(self, gain, exposure_time, wavelengths, incident_spectrum):
+        """
+        Compute the output digital signal
+        :param gain: Gain of sensor
+        :param exposure_time: Exposure time of image in s
+        :param wavelengths: Array of wavelengths in nm
+        :param incident_spectrum: Spectrum of incident light in W/(nmm2)
+        :return:
+        """
+        photons = self.compute_absorbed_photons_broadband(wavelengths, incident_spectrum, exposure_time)
+        signal = gain * (self.dark_noise+photons)
+        return signal
+
+    def compute_digital_signal(self, gain, wavelength, exposure_time, irradiance):
         """
         Compute the digital signal value
         :param Gain: Overall system gain in DN/e- (digits per electron)
@@ -124,7 +149,7 @@ class Sensor:
         :param irradiance: Incident Radiance E on sensor surface in [uW/cm^2]
         :return: Mean digital signal
         """
-        signal = Gain*(self.dark_noise+self.compute_absorbed_photons(wavelength, exposure_time, irradiance))
+        signal = gain*(self.dark_noise+self.compute_absorbed_photons(wavelength, exposure_time, irradiance))
         return signal
 
     def get_sensor_size(self, axis):
@@ -134,6 +159,18 @@ class Sensor:
         :return: Size along the specified axis im um
         """
         return self.get_resolution(axis) * self.pixel_size
+
+    def get_pixel_area(self, units='mm'):
+        """ Compute the area of a pixel in um2
+        :param: Units: Either 'm', 'mm', 'um'
+        :return: Pixel area in um2
+        """
+        if units == 'm':
+            return (self.pixel_size*math.pow(10, -6))**2
+        if units == 'mm':
+            return (self.pixel_size*math.pow(10, -3))**2
+        if units == 'um':
+            return (self.pixel_size)**2
 
     def get_resolution(self, axis):
         """
@@ -256,9 +293,9 @@ class Camera:
         :return:
         """
         if self.housing == 'flat':
-            return self.lens.focal_length
+            return self.lens.focal_length*1.33
         elif self.housing == 'domed':
-            return self.lens.focal_length/1.33
+            return self.lens.focal_length
 
     def set_housing(self, housing_type):
         """

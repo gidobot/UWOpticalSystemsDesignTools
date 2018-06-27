@@ -44,9 +44,9 @@ class LightSource:
         :param working_distance: Distance to surface being illuminated
         :return: tuple of spectrum wavelength and corresponding irradiance
         """
-        area = self.compute_beam_area(working_distance)
-        scale = self.compute_spectral_radiance_scale()
-        scale /= area
+        area = self.compute_beam_area(working_distance) # Units: m2
+        scale = self.compute_spectral_radiance_scale()  # Units: W/nm
+        scale /= area   # Units: W/(nm*m2)
 
         return self.spectral_wav, scale*self.spectral_dist
 
@@ -59,9 +59,9 @@ class LightSource:
         wavelengths = np.linspace(max(self.spectral_wav.min(), self.photopic_wavelengths.min()),
                                   min(self.spectral_wav.max(), self.photopic_wavelengths.max()), 100)
 
-        luminosity_integral_func = self.get_spectrum_value(wavelengths) * self.get_photopic_eff(wavelengths)
-        integral = simps(luminosity_integral_func, wavelengths)
-        Emax = self.luminousflux / (683.002 * integral)
+        luminosity_integral_func = self.get_spectrum_value(wavelengths) * self.get_photopic_eff(wavelengths)  # Dimensionless
+        integral = simps(luminosity_integral_func, wavelengths)  # nm
+        Emax = self.luminousflux / (683.002 * integral)  # W/nm
         return Emax
 
     def compute_peak_wavelength(self, T):

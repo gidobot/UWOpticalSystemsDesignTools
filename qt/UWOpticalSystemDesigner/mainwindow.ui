@@ -1312,6 +1312,29 @@
        <string>Output</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
+       <item row="0" column="1">
+        <widget class="QLabel" name="fovxValueLabel">
+         <property name="minimumSize">
+          <size>
+           <width>50</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="exposureLabel">
+         <property name="text">
+          <string>Max Exposure:</string>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="2">
         <widget class="QLabel" name="fovyUnitsLabel">
          <property name="text">
@@ -1339,22 +1362,6 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="fovxValueLabel">
-         <property name="minimumSize">
-          <size>
-           <width>50</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>0</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
        <item row="4" column="0">
         <spacer name="verticalSpacer_2">
          <property name="orientation">
@@ -1375,13 +1382,6 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="FOVxLabel">
-         <property name="text">
-          <string>FOV_x:</string>
-         </property>
-        </widget>
-       </item>
        <item row="2" column="0">
         <widget class="QLabel" name="apertureLabel">
          <property name="text">
@@ -1389,10 +1389,10 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="exposureLabel">
+       <item row="0" column="0">
+        <widget class="QLabel" name="FOVxLabel">
          <property name="text">
-          <string>Max Exposure:</string>
+          <string>FOV_x:</string>
          </property>
         </widget>
        </item>
@@ -1400,6 +1400,13 @@
         <widget class="QLabel" name="framerateUnitsLabel">
          <property name="text">
           <string>Hz</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLabel" name="apertureUnitsLabel">
+         <property name="text">
+          <string>f-Number</string>
          </property>
         </widget>
        </item>
@@ -1422,10 +1429,10 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="2">
-        <widget class="QLabel" name="apertureUnitsLabel">
+       <item row="0" column="4">
+        <widget class="QLabel" name="framerateLabel">
          <property name="text">
-          <string>f-Number</string>
+          <string>Framerate:</string>
          </property>
         </widget>
        </item>
@@ -1458,13 +1465,6 @@
          </property>
         </spacer>
        </item>
-       <item row="0" column="4">
-        <widget class="QLabel" name="framerateLabel">
-         <property name="text">
-          <string>Framerate:</string>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="1">
         <widget class="QLabel" name="fovyValueLabel">
          <property name="minimumSize">
@@ -1488,7 +1488,7 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="6">
+       <item row="0" column="8">
         <spacer name="horizontalSpacer_7">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -1500,6 +1500,27 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="1" column="4">
+        <widget class="QLabel" name="imgAvgValueLabel">
+         <property name="text">
+          <string>Avg Image Intensity:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="5">
+        <widget class="QLabel" name="avgImgValueValueLabel">
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="7">
+        <widget class="QLabel" name="avgImageValueUnitsLabel">
+         <property name="text">
+          <string>%</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -1555,7 +1576,28 @@
      <string>Underwater Optical Systems Calculator</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuFIle">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="separator"/>
+    <addaction name="actionSave"/>
+    <addaction name="actionLoad"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuMode">
+    <property name="title">
+     <string>Mode</string>
+    </property>
+   </widget>
    <addaction name="menuUnderwater_Optical_Systems_Calculator"/>
+   <addaction name="menuFIle"/>
+   <addaction name="menuMode"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -1566,6 +1608,16 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="actionLoad">
+   <property name="text">
+    <string>Load</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
