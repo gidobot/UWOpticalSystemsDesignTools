@@ -1,5 +1,6 @@
 {
   "type":"sensor",
+  "mode":"color",
   "name":"IMX285",
   "resolution_x":"1360",
   "resolution_y":"1024",

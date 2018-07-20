@@ -41,6 +41,7 @@ class Sensor:
                 if not sensor_data["type"] == "sensor":
                     return False
                 self.name = sensor_data["name"]
+                self.mode = sensor_data["mode"]
                 self.resolution_y = float(sensor_data["resolution_y"])
                 self.resolution_x = float(sensor_data["resolution_x"])
                 self.pixel_size = float(sensor_data["pixel_size"])
@@ -48,8 +49,22 @@ class Sensor:
                 self.max_shutter_time = float(sensor_data["max_shutter_time"])
                 self.min_shutter_time = float(sensor_data["min_shutter_time"])
 
-                self.quantum_efficiency_wav = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]]
-                self.quantum_efficiency = [float(x) for x in sensor_data["quantum_efficiency"]]
+                if self.mode == 'mono':
+                    self.quantum_efficiency_wav = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]]
+                    self.quantum_efficiency = [float(x) for x in sensor_data["quantum_efficiency"]]
+                elif self.mode == 'color':
+                    self.quantum_efficiency_wav = {}
+                    self.quantum_efficiency = {}
+                    self.quantum_efficiency_wav["red"] = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]["red"]]
+                    self.quantum_efficiency_wav["green"] = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]["green"]]
+                    self.quantum_efficiency_wav["blue"] = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]["blue"]]
+                    self.quantum_efficiency["red"] = [float(x) for x in sensor_data["quantum_efficiency"]["red"]]
+                    self.quantum_efficiency["green"] = [float(x) for x in sensor_data["quantum_efficiency"]["green"]]
+                    self.quantum_efficiency["blue"] = [float(x) for x in sensor_data["quantum_efficiency"]["blue"]]
+                    self.quantum_efficiency_wav["mono"], self.quantum_efficiency["mono"] = \
+                        self.compute_combined_color_quantum_efficiency()
+                else:
+                    return False
 
                 self.dark_noise = float(sensor_data["dark_noise"])
 
@@ -76,7 +91,30 @@ class Sensor:
         :param wave_length: Input wavelength
         :return:
         """
-        return np.interp(wave_length, self.quantum_efficiency_wav, self.quantum_efficiency)
+        if self.mode == 'mono':
+            return np.interp(wave_length, self.quantum_efficiency_wav, self.quantum_efficiency)
+        elif self.mode == 'color':
+            return np.interp(wave_length, self.quantum_efficiency_wav["mono"], self.quantum_efficiency["mono"])
+
+    def compute_combined_color_quantum_efficiency(self):
+        """
+        Calculate mono quantum efficiency response for color camera from individual
+        color channel quantum efficiency curves.
+        param red_wav: Red channel wavelengths
+        param green_wav: Green channel wavelengths
+        param blue_wav: Blue channel wavelengths
+        param red_eff: Red channel quantum efficiency
+        param green_eff: Green channel quantum efficiency
+        param blue_eff: Blue channel quantum efficiency
+        return: Wavelengths for combined mono response,
+                Combined quantum efficiency for mono response
+        """
+        mono_wav = self.quantum_efficiency_wav["green"]
+        red = [np.interp(x, self.quantum_efficiency_wav["red"], self.quantum_efficiency["red"]) for x in mono_wav]
+        green = self.quantum_efficiency["green"]
+        blue = [np.interp(x, self.quantum_efficiency_wav["blue"], self.quantum_efficiency["blue"]) for x in mono_wav]
+        mono_eff = (2*green + red + blue)/4
+        return mono_wav, mono_eff
 
     def compute_incident_photons(self, wavelength, exposure_time, irradiance):
         """
