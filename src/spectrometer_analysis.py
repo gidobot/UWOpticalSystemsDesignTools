@@ -65,18 +65,45 @@ def bi_norm(x, *args):
 
     return ret
 
+def plot_light_spectrum_comparison():
+    """
+    This function creates a plot comparing the normalized light spectra of different light sources
+    :return: None
+    """
+    led_file = "/home/eiscar/PyCharm_Projects/UWOpticalSystemDesigner/LightData/LightMeasurements/LEDBENCH_002_02ﾟ_5407K.csv"
+    fluorescent_file = "/home/eiscar/PyCharm_Projects/UWOpticalSystemDesigner/test/GeneralLightTests/FlourescentTube/FLUORESCEND-TUBE_001_02ﾟ_3328K.csv"
+    sun_file = "/home/eiscar/PyCharm_Projects/UWOpticalSystemDesigner/test/GeneralLightTests/Sun/SUN_001_02ﾟ_5575K.csv"
+
+    led_wave, led_spectrum = filter_duplicates(*load_csv(led_file))
+    led_spectrum = np.divide(led_spectrum, np.max(led_spectrum))
+    fluorescent_wave, fluorescent_spectrum = filter_duplicates(*load_csv(fluorescent_file))
+    fluorescent_spectrum = np.divide(fluorescent_spectrum, np.max(fluorescent_spectrum))
+    sun_wave, sun_spectrum = filter_duplicates(*load_csv(sun_file))
+    sun_spectrum = np.divide(sun_spectrum, np.max(sun_spectrum))
+    plt.plot(led_wave, led_spectrum, 'r')
+    plt.plot(fluorescent_wave, fluorescent_spectrum, 'g')
+    plt.plot(sun_wave, sun_spectrum, 'b')
+    plt.ylim(0, 1.5)
+    plt.xlabel("Wavelength [nm]", fontsize=24)
+    plt.ylabel("Relative Spectrum", fontsize=24)
+    plt.legend(['Led ', 'Fluorescent ', 'Sunlight'], loc=1, fontsize=14, ncol=3)
+    plt.tight_layout()
+    plt.show()
+
+
 def main(filepath):
     wavelength, irradiance = load_csv(filepath)
     w, i = filter_duplicates(wavelength, irradiance)
     i = normalize(i)
 #    plot_spectrum(w, i)
     fit_spectrum(w, i)
+
 if __name__=="__main__":
     #main("/home/eiscar/PyCharm_Projects/UWOpticalSystemDesigner/LightData/LightMeasurements/LEDARRAY_001_02ﾟ_6471K.csv")
     #main("/home/eiscar/PyCharm_Projects/UWOpticalSystemDesigner/LightData/LightMeasurements/LEDARRAY_002_02ﾟ_6478K.csv")
 
     #main("/home/eiscar/PyCharm_Projects/UWOpticalSystemDesigner/LightData/LightMeasurements/LEDFIX2500DX100_001_02ﾟ_5273K.csv")
     #main("/home/eiscar/PyCharm_Projects/UWOpticalSystemDesigner/LightData/LightMeasurements/LEDBENCH_001_02ﾟ_5416K.csv")
-    main("/home/eiscar/PyCharm_Projects/UWOpticalSystemDesigner/LightData/LightMeasurements/LEDBENCH_002_02ﾟ_5407K.csv")
-
+    #main("/home/eiscar/PyCharm_Projects/UWOpticalSystemDesigner/LightData/LightMeasurements/LEDBENCH_002_02ﾟ_5407K.csv")
+    plot_light_spectrum_comparison()
 
