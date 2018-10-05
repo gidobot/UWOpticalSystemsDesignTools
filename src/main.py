@@ -311,12 +311,14 @@ class Model:
             logging.info("Updating full image formation model")
 
             lights_wavelength, lights_irradiance_spectrum = self.light.get_irradiance_spectrum(self.scene.altitude)
+            print(max(lights_wavelength))
+            print(min(lights_wavelength))
             water_attenuation = [self.water.get_attenuation(x, self.scene.altitude) for x in lights_wavelength]
             # TODO: Get reflection value
             reflection = [0.53] * len(water_attenuation)
 
-            lens_transmittance = [self.model.camera.lens.get_transmittance(x) for x in lights_wavelength]
-            incident_spectrum = lights_irradiance_spectrum * water_attenuation**2 * reflection * lens_transmittance
+            lens_transmittance = [self.camera.lens.get_transmittance(x) for x in lights_wavelength]
+            #incident_spectrum = lights_irradiance_spectrum * water_attenuation**2 * reflection * lens_transmittance
 
             # Compute irradiance
 
