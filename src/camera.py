@@ -41,6 +41,7 @@ class Sensor:
                 if not sensor_data["type"] == "sensor":
                     return False
                 self.name = sensor_data["name"]
+                self.mode = sensor_data["mode"]
                 self.resolution_y = float(sensor_data["resolution_y"])
                 self.resolution_x = float(sensor_data["resolution_x"])
                 self.pixel_size = float(sensor_data["pixel_size"])
@@ -48,10 +49,29 @@ class Sensor:
                 self.max_shutter_time = float(sensor_data["max_shutter_time"])
                 self.min_shutter_time = float(sensor_data["min_shutter_time"])
 
-                self.quantum_efficiency_wav = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]]
-                self.quantum_efficiency = [float(x) for x in sensor_data["quantum_efficiency"]]
+                if self.mode == 'mono':
+                    self.quantum_efficiency_wav = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]]
+                    self.quantum_efficiency = [float(x) for x in sensor_data["quantum_efficiency"]]
+                elif self.mode == 'color':
+                    self.quantum_efficiency_wav = {}
+                    self.quantum_efficiency = {}
+                    self.quantum_efficiency_wav["red"] = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]["red"]]
+                    self.quantum_efficiency_wav["green"] = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]["green"]]
+                    self.quantum_efficiency_wav["blue"] = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]["blue"]]
+                    self.quantum_efficiency["red"] = [float(x) for x in sensor_data["quantum_efficiency"]["red"]]
+                    self.quantum_efficiency["green"] = [float(x) for x in sensor_data["quantum_efficiency"]["green"]]
+                    self.quantum_efficiency["blue"] = [float(x) for x in sensor_data["quantum_efficiency"]["blue"]]
+                    self.quantum_efficiency_wav["mono"], self.quantum_efficiency["mono"] = \
+                        self.compute_combined_color_quantum_efficiency()
+                    # fig1, ax1 = plt.subplots()
+                    # ax1.plot(self.quantum_efficiency_wav["mono"], self.quantum_efficiency["mono"], '--x')
+                    # plt.show()
+                else:
+                    return False
 
                 self.dark_noise = float(sensor_data["dark_noise"])
+                self.gain = float(sensor_data["gain"])
+                print(self.gain)
 
             except KeyError as e:
                 print("Error parsing json data for sensor. Key not found:",e)
@@ -76,7 +96,30 @@ class Sensor:
         :param wave_length: Input wavelength
         :return:
         """
-        return np.interp(wave_length, self.quantum_efficiency_wav, self.quantum_efficiency)
+        if self.mode == 'mono':
+            return np.interp(wave_length, self.quantum_efficiency_wav, self.quantum_efficiency)
+        elif self.mode == 'color':
+            return np.interp(wave_length, self.quantum_efficiency_wav["mono"], self.quantum_efficiency["mono"])
+
+    def compute_combined_color_quantum_efficiency(self):
+        """
+        Calculate mono quantum efficiency response for color camera from individual
+        color channel quantum efficiency curves.
+        param red_wav: Red channel wavelengths
+        param green_wav: Green channel wavelengths
+        param blue_wav: Blue channel wavelengths
+        param red_eff: Red channel quantum efficiency
+        param green_eff: Green channel quantum efficiency
+        param blue_eff: Blue channel quantum efficiency
+        return: Wavelengths for combined mono response,
+                Combined quantum efficiency for mono response
+        """
+        mono_wav = np.array(self.quantum_efficiency_wav["green"], dtype=float)
+        red = np.array([np.interp(x, self.quantum_efficiency_wav["red"], self.quantum_efficiency["red"]) for x in mono_wav], dtype=float)
+        green = np.array(self.quantum_efficiency["green"], dtype=float)
+        blue = np.array([np.interp(x, self.quantum_efficiency_wav["blue"], self.quantum_efficiency["blue"]) for x in mono_wav], dtype=float)
+        mono_eff = (2*green + red + blue)/4
+        return mono_wav, mono_eff
 
     def compute_incident_photons(self, wavelength, exposure_time, irradiance):
         """
@@ -86,7 +129,7 @@ class Sensor:
         :param irradiance:  Incident Radiance E on sensor surface in [uW/cm^2]
         :return: Number of incident photons
         """
-        pixel_area = self.pixel_size**2
+        pixel_area = self.get_pixel_area('um')
         incident_photons = 50.34 * pixel_area * exposure_time * wavelength * irradiance
         return incident_photons
 
@@ -120,14 +163,13 @@ class Sensor:
         # Weight the spectrum with the wavelength
         lambda_spectrum = np.multiply(wavelengths, absorbed_spectrum)  # W/m2
 
-        integral = simps(lambda_spectrum, np.array(wavelengths)*math.pow(10, -9))  # Wm
+        integral = simps(lambda_spectrum, np.array(wavelengths)*math.pow(10, -9))  # W/m
         photon_density = integral / (h*c)  # Photons/m2s
         photons = photon_density * self.get_pixel_area('m') * exposure_time
-
-        print(self.get_pixel_area('m'))
+        # print(self.get_pixel_area('m'))
         return photons
 
-    def compute_digital_signal_broadband(self, gain, exposure_time, wavelengths, incident_spectrum):
+    def compute_digital_signal_broadband(self, exposure_time, wavelengths, incident_spectrum):
         """
         Compute the output digital signal
         :param gain: Gain of sensor
@@ -137,10 +179,10 @@ class Sensor:
         :return:
         """
         photons = self.compute_absorbed_photons_broadband(wavelengths, incident_spectrum, exposure_time)
-        signal = gain * (self.dark_noise+photons)
+        signal = self.gain * (self.dark_noise+photons)
         return signal
 
-    def compute_digital_signal(self, gain, wavelength, exposure_time, irradiance):
+    def compute_digital_signal(self, wavelength, exposure_time, irradiance):
         """
         Compute the digital signal value
         :param Gain: Overall system gain in DN/e- (digits per electron)
@@ -149,7 +191,7 @@ class Sensor:
         :param irradiance: Incident Radiance E on sensor surface in [uW/cm^2]
         :return: Mean digital signal
         """
-        signal = gain*(self.dark_noise+self.compute_absorbed_photons(wavelength, exposure_time, irradiance))
+        signal = self.gain*(self.dark_noise+self.compute_absorbed_photons(wavelength, exposure_time, irradiance))
         return signal
 
     def get_sensor_size(self, axis):
