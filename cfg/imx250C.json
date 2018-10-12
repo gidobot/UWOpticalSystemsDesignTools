@@ -8,7 +8,7 @@
   "min_shutter_time":"19",
   "pixel_size":"3.45",
   "dark_noise":"2.38",
-  "gain": "0.17",
+  "gain": "5.882",
 "quantum_efficiency_wavelengths": {
     "red": [
         310.1542,

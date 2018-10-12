@@ -16,7 +16,9 @@ class CameraResponseExperiments():
 
     def __init__(self):
         self.camera = camera.Camera()
-        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../cfg/imx250M.json")
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../cfg/icx285alM.json")
+        # path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../cfg/imx249.json")
+        # path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../cfg/imx250C.json")
         self.camera.sensor.load(path)
 
     def test_camera_response(self, relative_irradiance_path, exposure_time):
@@ -24,9 +26,13 @@ class CameraResponseExperiments():
         filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), relative_irradiance_path)
         wavelength, irradiance = load_csv(filepath)
         w, i = filter_duplicates(wavelength, irradiance)
+        idx = np.argmax(i)
+        # import pdb
+        # pdb.set_trace()
         #plt.plot(w, i)
         #plt.show()
         digital_signal = self.camera.sensor.compute_digital_signal_broadband(exposure_time, w, i)
+        # digital_signal = self.camera.sensor.compute_digital_signal(exposure_time, w[idx], i[idx])
         exposure = simps(i, w)*exposure_time  # Wm
 
         return digital_signal, exposure
@@ -36,8 +42,12 @@ class CameraResponseExperiments():
 if __name__ == '__main__':
 
     # Set data_dir to data root directory
-    data_dir = "BFS-U3-51S5M/VaryingExposureTime/Set1/"
+    # data_dir = "BFS-U3-51S5C/VaryingExposureTime/Set1/"
+    # data_dir = "BFS-U3-51S5M/VaryingExposureTime/Set1/"
+    # data_dir = "BFLY-PGE-50S5C/VaryingExposureTime/Set3/"
     # data_dir = "BFLY-U323S6M/VaryingExposureTime/Set1/"
+    # data_dir = "GT-1380/VaryingExposureTime/Set1"
+    data_dir = "GT-1380/Filter500/Set1"
 
     data_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), data_dir)
     data_file = os.path.join(data_dir,"data.csv")

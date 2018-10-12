@@ -124,11 +124,14 @@ class Sensor:
     def compute_incident_photons(self, wavelength, exposure_time, irradiance):
         """
         Compute the amount of incident photons for narrowband light
-        :param wavelength: wavelength of incident light in [um]
-        :param exposure_time: image shutter time in [ms]
-        :param irradiance:  Incident Radiance E on sensor surface in [uW/cm^2]
+        :param wavelength: wavelength of incident light in [nm]
+        :param exposure_time: image shutter time in [s]
+        :param irradiance:  Incident Radiance E on sensor surface in [W/m^2*nm]
         :return: Number of incident photons
         """
+        exposure_time = exposure_time*math.pow(10,3)
+        irradiance = irradiance * wavelength * math.pow(10,2) # from [W/m^2*nm] to [uW/cm^2]
+        wavelength = wavelength*math.pow(10,-3) # from nm to um
         pixel_area = self.get_pixel_area('um')
         incident_photons = 50.34 * pixel_area * exposure_time * wavelength * irradiance
         return incident_photons
@@ -182,7 +185,7 @@ class Sensor:
         signal = self.gain * (self.dark_noise+photons)
         return signal
 
-    def compute_digital_signal(self, wavelength, exposure_time, irradiance):
+    def compute_digital_signal(self, exposure_time, wavelength, irradiance):
         """
         Compute the digital signal value
         :param Gain: Overall system gain in DN/e- (digits per electron)

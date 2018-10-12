@@ -18,5 +18,5 @@ if __name__ == '__main__':
 	for file in glob.glob(os.path.join(args.input_folder, "*.png")):
 		image = PIL.Image.open(file)
 		pixel = np.array(image)
-		mean_pixel = np.mean(pixel)
+		mean_pixel = np.mean(pixel)*(2**4)
 		print("Mean bayer pixel value for {}: {}".format(file, mean_pixel))
