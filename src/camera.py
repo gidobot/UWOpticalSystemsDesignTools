@@ -26,7 +26,7 @@ class Sensor:
         self.quantum_efficiency = []  # List of tuples with wavelength,quantum_efficiency
 
         self.dark_noise = 0  # In Electrons
-
+        self.gain = 0
         self.initialized = False
 
     def load(self, file_path):
@@ -129,9 +129,9 @@ class Sensor:
         :param irradiance:  Incident Radiance E on sensor surface in [W/m^2]
         :return: Number of incident photons
         """
-        exposure_time = exposure_time*math.pow(10,3) # From s to ms
+        exposure_time = exposure_time*math.pow(10, 3) # From s to ms
         irradiance = irradiance * math.pow(10, 2) # from [W/m^2] to [uW/cm^2]
-        wavelength = wavelength*math.pow(10,-3) # from nm to um
+        wavelength = wavelength*math.pow(10, -3) # from nm to um
         pixel_area = self.get_pixel_area('um')
         incident_photons = 50.34 * pixel_area * exposure_time * wavelength * irradiance
         print("Pixel Area: {} Exposure time: {} Wavelength: {} Irradiance E: {}[W/m2], Photons: {} ".format(pixel_area, exposure_time, wavelength, irradiance, incident_photons))
@@ -191,8 +191,9 @@ class Sensor:
         # Absorbed energy
         absorbed_energy = np.trapz(np.multiply(incident_spectrum, np.multiply(wavelengths, quantum_eff_spectrum)), wavelengths)
         print("Absorbed Energy: {}[W/m2]".format(absorbed_energy))
-        #plt.plot(wavelengths, incident_photons_spectrum)
-        #plt.show()
+
+        # plt.plot(wavelengths, incident_photons_spectrum)
+        # plt.show()
         # fig, ax1 = plt.subplots()
         # ax1.plot(wavelengths, quantum_eff_spectrum,'b', label="QE")
         # ax1.set_xlabel('Wavelength [nm]')

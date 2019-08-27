@@ -3,6 +3,7 @@ import csv
 import matplotlib.pyplot as plt
 import scipy.stats
 import scipy.optimize
+from scipy.interpolate import UnivariateSpline
 import numpy as np
 import os
 import lights as lg
@@ -21,7 +22,7 @@ def load_csv(filepath):
                     irradiance.append(float(row[1]))
             except:
                 pass
-
+    wavelength, irradiance = filter_duplicates(wavelength, irradiance)
     return (wavelength, irradiance)
 
 def plot_spectrum(wavelength, irradiance):
@@ -102,16 +103,16 @@ def get_global_path(path):
 def analyze_complete_pipeline():
 
     # Define Spectrogram files
-    ambient_file = "../test/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_002_02ﾟ_Under.csv"
-    board_file1 = "../test/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_003_02ﾟ_5384K.csv"
-    board_file2 = "../test/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_004_02ﾟ_5522K.csv"
-    board_file3 = "../test/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_005_02ﾟ_5553K.csv"
-    board_file4 = "../test/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_006_02ﾟ_5474K.csv"
+    ambient_file = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_002_02ﾟ_Under.csv"
+    board_file1 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_003_02ﾟ_5384K.csv"
+    board_file2 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_004_02ﾟ_5522K.csv"
+    board_file3 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_005_02ﾟ_5553K.csv"
+    board_file4 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_006_02ﾟ_5474K.csv"
 
-    camera_file1 = "../test/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_007_02ﾟ_5797K.csv"
-    camera_file2 = "../test/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_008_02ﾟ_5857K.csv"
-    camera_file3 = "../test/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_009_02ﾟ_5882K.csv"
-    camera_file4 = "../test/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_010_02ﾟ_5809K.csv"
+    camera_file1 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_007_02ﾟ_5797K.csv"
+    camera_file2 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_008_02ﾟ_5857K.csv"
+    camera_file3 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_009_02ﾟ_5882K.csv"
+    camera_file4 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_010_02ﾟ_5809K.csv"
 
     # Experimental exposure values and image responses
     exposure_times = 0.000049 * np.array([2600, 2400, 2200, 2000, 1800, 1600, 1400, 1200, 1000, 800, 600, 400, 300, 200, 100, 50])
@@ -158,7 +159,7 @@ def analyze_complete_pipeline():
     model_camera_response = []
     for exposure_time in exposure_times:
         model_camera_response.append(camera.sensor.compute_digital_signal_broadband(
-            0.53, exposure_time, lights_wavelength, model_camera_spectrum))
+             exposure_time, lights_wavelength, model_camera_spectrum))
 
     # Generate plots
     plt.figure(1)
@@ -232,6 +233,26 @@ def main(filepath):
 #    plot_spectrum(w, i)
     fit_spectrum(w, i)
 
+def get_spectrum_fwhm(path):
+    wavelength, irradiance = load_csv(path)
+    wavelength, irradiance = filter_duplicates(wavelength, irradiance)
+
+    # create a spline of x and blue-np.max(blue)/2
+    spline = UnivariateSpline(wavelength, irradiance-np.max(irradiance)/2, s=0)
+    r1, r2 = spline.roots() # find the roots
+    plt.figure()
+    plt.plot(wavelength, irradiance)
+    print(r1, r2)
+    plt.show()
+
+def compute_image_uniformity(image):
+    dE = ((np.max(image)-np.min(image))/np.mean(image)) *100
+
+    if dE <3:
+        print("Image illumination is sufficiently uniform (dE={})".format(dE))
+    else:
+        print("Image illumination is NOT uniform enough. dE={}".format(dE))
+
 if __name__=="__main__":
     #main("/home/eiscar/PyCharm_Projects/UWOpticalSystemDesigner/LightData/LightMeasurements/LEDARRAY_001_02ﾟ_6471K.csv")
     #main("/home/eiscar/PyCharm_Projects/UWOpticalSystemDesigner/LightData/LightMeasurements/LEDARRAY_002_02ﾟ_6478K.csv")
@@ -241,3 +262,4 @@ if __name__=="__main__":
     #main("/home/eiscar/PyCharm_Projects/UWOpticalSystemDesigner/LightData/LightMeasurements/LEDBENCH_002_02ﾟ_5407K.csv")
     #plot_light_spectrum_comparison()
     analyze_complete_pipeline()
+    #get_spectrum_fwhm("/home/eiscar/LEDBlueSpectrum/BFS-U3-63S4M-BL_001_10ﾟ_Under.csv")

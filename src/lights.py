@@ -56,13 +56,23 @@ class LightSource:
         :return: scale factor in Watt
         """
 
-        wavelengths = np.linspace(max(self.spectral_wav.min(), self.photopic_wavelengths.min()),
-                                  min(self.spectral_wav.max(), self.photopic_wavelengths.max()), 100)
 
-        luminosity_integral_func = self.get_spectrum_value(wavelengths) * self.get_photopic_eff(wavelengths)  # Dimensionless
-        integral = simps(luminosity_integral_func, wavelengths)  # nm
-        Emax = self.luminousflux / (683.002 * integral)  # W/nm
+        Emax = self.luminousflux / self.compute_luminous_flux()  # W/nm
         return Emax
+
+    def compute_luminous_flux(self):
+        """
+        Compute the luminous flux from a light spectrum
+        :return:
+        """
+        wavelengths = np.linspace(np.max([np.min(self.spectral_wav), np.min(self.photopic_wavelengths)]),
+                                  np.min([np.max(self.spectral_wav), np.max(self.photopic_wavelengths)]), 100)
+
+        luminosity_integral_func = self.get_spectrum_value(wavelengths) * self.get_photopic_eff(
+            wavelengths)  # Dimensionless
+        flux = 683.002 * simps(luminosity_integral_func, wavelengths)  # nm
+
+        return flux
 
     def compute_peak_wavelength(self, T):
         """
@@ -114,7 +124,7 @@ class LightSource:
                 self.spectral_dist = np.array([float(x) for x in light_data["spectral_distribution"]])
                 self.initialized = True
             except KeyError as e:
-                print("Error parsing json data for sensor. Key not found:", e)
+                print("Error parsing json data for light. Key not found:", e)
 
     def init_generic_led_light(self, luminous_flux, beam_angle):
         self.name = "Generic LED"
