@@ -1,3 +1,5 @@
+# This Python file uses the following encoding: utf-8
+
 import numpy as np
 import scipy.stats
 from scipy.integrate import simps

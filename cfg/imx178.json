@@ -1,7 +1,7 @@
 {
   "type":"sensor",
   "mode":"mono",
-  "name":"ICX178",
+  "name":"IMX178",
   "resolution_x":"3072",
   "resolution_y":"2048",
   "max_shutter_time":"3000000",
