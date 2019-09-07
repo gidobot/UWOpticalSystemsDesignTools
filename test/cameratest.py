@@ -35,10 +35,11 @@ class CameraResponseExperiments():
         idx = np.argmax(irradiance)
         irradiance_filter = np.zeros(len(irradiance))
 
-        delta = 1
+        delta = 6
         irradiance_filter[idx-delta:idx+delta+1] = irradiance[idx-delta:idx+delta+1]
 
         area = np.trapz(irradiance_filter, wavelength)
+        # area = np.trapz(irradiance, wavelength)
         #plt.plot(w, irradiance_filter)
         #plt.show()
         digital_signal_broad = self.camera.sensor.compute_digital_signal_broadband(exposure_time, wavelength, irradiance)
@@ -84,7 +85,7 @@ class CameraResponseExperiments():
             exposure_time = data_list[i][1]
             print("Lux value: {}".format(self.test_lux_values(file)))
             response_narrow, response_broad, exposure = self.estimate_camera_response(file, exposure_time)
-            #model_response_narrow.append(response_narrow)
+            model_response_narrow.append(response_narrow)
             model_response_broad.append(response_broad)
             exposure_values.append(exposure)
             measured_response.append(data_list[i][2])
@@ -102,29 +103,29 @@ class CameraResponseExperiments():
         fig1, ax1 = plt.subplots()
         # fig1.set_size_inches(width, height)
         # fig1.subplots_adjust(left=.16, bottom=.17, right=.99, top=.97)
-        #ax1.plot(exposure_values_mw, model_response_narrow, '--x')
+        ax1.plot(exposure_values_mw, model_response_narrow, '--x')
         ax1.plot(exposure_values_mw, model_response_broad, '--ro')
         ax1.plot(exposure_values_mw, measured_response, '-o')
-        ax1.legend(['Model Broadband', 'Experiments'])
+        ax1.legend(['Model Narrowband', 'Model Broadband', 'Experiments'])
         ax1.set_xlabel('Exposure Value ' + '(mWs' + r'$/$' + 'm^2)')
         ax1.set_ylabel('Avg. Sensor Response')
         ax1.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
         fig1.tight_layout()
 
-        fig2, ax2 = plt.subplots()
-        fig2.set_size_inches(width, height)
-        # fig2.subplots_adjust(left=.12, bottom=.17, right=.99, top=.97)
-        ax2.plot(exposure_values_mw[0:], error_percent[0:], '-o')
-        ax2.set_xlabel('Exposure Value ' + '(mWs' + r'$/$' + 'm^2)')
-        ax2.set_ylabel('Percent Error')
-        ax2.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
-        ax2.set_ylim(ymax=10)
-        fig2.tight_layout()
+        # fig2, ax2 = plt.subplots()
+        # fig2.set_size_inches(width, height)
+        # # fig2.subplots_adjust(left=.12, bottom=.17, right=.99, top=.97)
+        # ax2.plot(exposure_values_mw[0:], error_percent[0:], '-o')
+        # ax2.set_xlabel('Exposure Value ' + '(mWs' + r'$/$' + 'm^2)')
+        # ax2.set_ylabel('Percent Error')
+        # ax2.grid(True, 'major', 'y', ls='--', lw=.5, c='k', alpha=.3)
+        # ax2.set_ylim(ymax=10)
+        # fig2.tight_layout()
 
         plt.show()
         print(os.path.join(self.data_dir, 'exposure_response.png'))
         fig1.savefig(os.path.join(self.data_dir, 'exposure_response.png'), bbox_inches='tight')
-        fig2.savefig(os.path.join(self.data_dir, 'exposure_error.png'), bbox_inches='tight')
+        # fig2.savefig(os.path.join(self.data_dir, 'exposure_error.png'), bbox_inches='tight')
 
 
 def main():
@@ -143,19 +144,21 @@ def main():
 
     # data_dir = "GT-1380/VaryingExposureTime/Set1"
 
-    #sensor_path = "../cfg/imx178.json"
-    #data_dir = "NewTests/BFS-U3-63S4M/ConstantLight/WhiteLight/Set1"
+    # sensor_path = "../cfg/imx178.json"
+    # data_dir = "NewTests/BFS-U3-63S4M/ConstantLight/WhiteLight/Set1"
 
     # sensor_path = "../cfg/imx250M.json"
     # data_dir = "NewTests/BFS-U3-51S5M/ConstantLight/WhiteLight/Set1"
-    # data_dir = "OldTests/BFS-U3-51S5M/VaryingExposureTime/Set1"
+
+    # sensor_path = "../cfg/imx252M.json"
+    # data_dir = "BFS-U3-32S4M/Tube/Set2"
 
     # sensor_path = "../cfg/imx249.json"
     # # data_dir = "NewTests/BFLY-U3-23S6M/ConstantLight/SpotLight/Set1"
     # data_dir = "NewTests/BFLY-U3-23S6M/ConstantLight/WhiteLight/Set1"
 
-    sensor_path = "../cfg/imx178.json"
-    data_dir = "NewTests/BFS-U3-63S4M/ConstantLight/WhiteLight/Set1"
+    # sensor_path = "../cfg/imx178.json"
+    # data_dir = "NewTests/BFS-U3-63S4M/ConstantLight/WhiteLight/Set1"
 
 
     experiments = CameraResponseExperiments(sensor_path, data_dir)
