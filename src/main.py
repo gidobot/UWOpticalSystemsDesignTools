@@ -2,13 +2,18 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from camera import Camera,  OperationalParameters
 from lights import LightSource
 from wateratenuationmodel import WaterPropagation
-from plotWindows import GraphWindow
+from plotWindows import GraphWindow, PlotWidget
 
 import mainwindow
 import sys
 import os
 import logging
 from math import pi
+
+import random
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.figure import Figure
 
 class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWindow):
     def __init__(self):
@@ -20,6 +25,10 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
 
         self.model = Model()
         self.init_model()
+
+        # Init compare camera view
+        self.plotWidget = PlotWidget()
+        self.plotWidget.plot()
 
     def init_model(self):
         self.model.scene.altitude = self.altitudeSlider.value()/100
@@ -34,6 +43,13 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         Sets up the required connections of the
         :return:
         """
+
+
+        self.actionCompare_Sensors.triggered.connect(lambda: self.modesStack.setCurrentIndex(1))
+        self.actionDesigner.triggered.connect(lambda: self.modesStack.setCurrentIndex(0))
+
+        ### Designer Connections ####
+
         # Lights connections
         self.LightsComboBox.currentIndexChanged.connect(self.on_light_combobox)
         self.beamAngleSlider.valueChanged.connect(self.init_generic_led)
@@ -62,6 +78,8 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         self.dofSlider.valueChanged.connect(self.on_depthoffield_slider)
         self.cameraOrientationCombobox.currentIndexChanged.connect(self.on_orientation_combobox)
         self.viewportCombobox.currentIndexChanged.connect(self.on_housing_combobox)
+
+
 
     def on_camera_info(self):
         if self.model.camera.sensor.initialized:
@@ -215,17 +233,17 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
 
     def on_altitude_slider(self):
         self.model.scene.altitude = self.altitudeSlider.value()/100
-        logging.info("Modified altitude to %f.", self.model.scene.altitude)
+        logging.info("Modified altitude to %.2f", self.model.scene.altitude)
         self.updateModel()
 
     def on_overlap_slider(self):
         self.model.scene.overlap = self.overlapSlider.value()/100
-        logging.info("Modified overlap to %i.", self.model.scene.overlap)
+        logging.info("Modified overlap to %.2f", self.model.scene.overlap)
         self.updateModel()
 
     def on_speed_slider(self):
         self.model.scene.speed = self.speedSlider.value()/100
-        logging.info("Modified speed to %f.", self.model.scene.speed)
+        logging.info("Modified speed to %.2f.", self.model.scene.speed)
         self.updateModel()
 
     def on_motionblur_slider(self):
@@ -235,7 +253,7 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
 
     def on_depthoffield_slider(self):
         self.model.scene.depthoffield = self.dofSlider.value()/100
-        logging.info("Modified overlap to %f.", self.model.scene.depthoffield)
+        logging.info("Modified overlap to %.2f.", self.model.scene.depthoffield)
         self.updateModel()
 
     def on_orientation_combobox(self, index):

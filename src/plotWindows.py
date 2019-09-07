@@ -9,8 +9,9 @@ from PyQt5 import QtCore, QtWidgets
 
 from numpy import arange, sin, pi
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
+from matplotlib.figure import Figure
 
 
 class MyMplCanvas(FigureCanvas):
@@ -34,8 +35,6 @@ class MyMplCanvas(FigureCanvas):
 class MyStaticMplCanvas(MyMplCanvas):
     """Simple canvas with a sine plot."""
     def setdata(self,x, y, xlabel, ylabel):
-        t = arange(0.0, 3.0, 0.01)
-        s = sin(2*pi*t)
         self.axes.plot(x, y)
         self.axes.set_xlabel(xlabel)
         self.axes.set_ylabel(ylabel)
@@ -56,7 +55,6 @@ class GraphWindow(QtWidgets.QMainWindow):
         self.main_widget.setFocus()
         self.setCentralWidget(self.main_widget)
 
-        #self.statusBar().showMessage("All hail matplotlib!", 2000)
 
     def fileQuit(self):
         self.close()
@@ -65,5 +63,33 @@ class GraphWindow(QtWidgets.QMainWindow):
         self.fileQuit()
 
 
+class PlotWidget(QtWidgets.QWidget):
+    def __init__(self,parent = None):
+        QtWidgets.QWidget.__init__(self, parent)
+        # a figure instance to plot on
+        self.figure = Figure()
 
+        # this is the Canvas Widget that displays the `figure`
+        # it takes the `figure` instance as a parameter to __init__
+        self.canvas = FigureCanvas(self.figure)
 
+        # this is the Navigation widget
+        # it takes the Canvas widget and a parent
+        self.toolbar = NavigationToolbar(self.canvas, self)
+
+    def plot(self):
+        ''' plot some random stuff '''
+        # random data
+        data = [random.random() for i in range(10)]
+
+        # create an axis
+        ax = self.figure.add_subplot(111)
+
+        # discards the old graph
+        ax.clear()
+
+        # plot data
+        ax.plot(data, '*-')
+
+        # refresh canvas
+        self.canvas.draw()
