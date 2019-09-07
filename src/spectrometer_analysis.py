@@ -1,3 +1,5 @@
+# This Python file uses the following encoding: utf-8
+
 __author__ = 'eiscar'
 import csv
 import matplotlib.pyplot as plt
@@ -9,6 +11,7 @@ import os
 import lights as lg
 import wateratenuationmodel as wt
 import camera as cam
+import math
 
 def load_csv(filepath):
     wavelength = []
@@ -103,50 +106,62 @@ def get_global_path(path):
 def analyze_complete_pipeline():
 
     # Define Spectrogram files
-    ambient_file = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_002_02ﾟ_Under.csv"
-    board_file1 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_003_02ﾟ_5384K.csv"
-    board_file2 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_004_02ﾟ_5522K.csv"
-    board_file3 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_005_02ﾟ_5553K.csv"
-    board_file4 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_006_02ﾟ_5474K.csv"
+    # board_file1 = "../test/BFS-U3-51S5M/Tank/Set2/LightMeterData/Board/board.csv"
+    # camera_file1 = "../test/BFS-U3-51S5M/Tank/Set2/LightMeterData/Cam/camera.csv"
 
-    camera_file1 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_007_02ﾟ_5797K.csv"
-    camera_file2 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_008_02ﾟ_5857K.csv"
-    camera_file3 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_009_02ﾟ_5882K.csv"
-    camera_file4 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_010_02ﾟ_5809K.csv"
+    board_file1 = "../test/BFS-U3-63S4M/Tank/Set1/LightMeterData/Board/board.csv"
+    camera_file1 = "../test/BFS-U3-63S4M/Tank/Set1/LightMeterData/Cam/camera.csv"
+
+    # ambient_file = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_002_02ﾟ_Under.csv"
+    # board_file1 = "../test/BFS-U3-51S5M/Tank/Set2/LightMeterData/Board/board.csv"
+    # board_file2 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_004_02ﾟ_5522K.csv"
+    # board_file3 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_005_02ﾟ_5553K.csv"
+    # board_file4 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_006_02ﾟ_5474K.csv"
+
+    # camera_file1 = "../test/BFS-U3-51S5M/Tank/Set2/LightMeterData/Cam/camera.csv"
+    # camera_file2 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_008_02ﾟ_5857K.csv"
+    # camera_file3 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_009_02ﾟ_5882K.csv"
+    # camera_file4 = "../test/OldTests/BFLY-U32356M/CompletePipeline/OneMeterDist/LightmeterData/EXP-TOTAL_010_02ﾟ_5809K.csv"
 
     # Experimental exposure values and image responses
-    exposure_times = 0.000049 * np.array([2600, 2400, 2200, 2000, 1800, 1600, 1400, 1200, 1000, 800, 600, 400, 300, 200, 100, 50])
-    sensor_response = [65407, 65385, 62600, 53700, 48500, 43200, 38000, 32600, 27300, 21800, 16300, 10900, 8100, 5400,
-                       2700, 1350]
-    sensor_description_file = "../cfg/imx249.json"
+    # exposure_times = math.pow(10, -3) * np.array([.007, .098, .197, .4, .597])
+    # sensor_response = [1557, 8306, 15463, 30515, 43918]
+    # sensor_description_file = "../cfg/imx250M.json"
+
+    exposure_times = math.pow(10, -3) * np.array([.016, .093, .202, .404, .606, .793, .995, 1.197])
+    sensor_response = [13862, 16392, 20253, 27059, 33871, 40262, 47188, 53915]
+    # sensor_response = [x - 13862 for x in sensor_response]
+    sensor_description_file = "../cfg/imx178.json"
 
     # Load Spectrogram data
-    ambient_wave, ambient_spectrum = filter_duplicates(*load_csv(ambient_file))
+    # ambient_wave, ambient_spectrum = filter_duplicates(*load_csv(ambient_file))
     board1_wave, board1_spectrum = filter_duplicates(*load_csv(board_file1))
-    board2_wave, board2_spectrum = filter_duplicates(*load_csv(board_file2))
-    board3_wave, board3_spectrum = filter_duplicates(*load_csv(board_file3))
-    board4_wave, board4_spectrum = filter_duplicates(*load_csv(board_file4))
-    board_spectrum_average = (np.array(board1_spectrum) + np.array(board2_spectrum) +np.array(board3_spectrum)+ np.array(board4_spectrum)) / 4
+    # board2_wave, board2_spectrum = filter_duplicates(*load_csv(board_file2))
+    # board3_wave, board3_spectrum = filter_duplicates(*load_csv(board_file3))
+    # board4_wave, board4_spectrum = filter_duplicates(*load_csv(board_file4))
+    # board_spectrum_average = (np.array(board1_spectrum) + np.array(board2_spectrum) +np.array(board3_spectrum)+ np.array(board4_spectrum)) / 4
+    board_spectrum_average = np.array(board1_spectrum)
 
     camera1_wave, camera1_spectrum = filter_duplicates(*load_csv(camera_file1))
-    camera2_wave, camera2_spectrum = filter_duplicates(*load_csv(camera_file2))
-    camera3_wave, camera3_spectrum = filter_duplicates(*load_csv(camera_file3))
-    camera4_wave, camera4_spectrum = filter_duplicates(*load_csv(camera_file4))
-    camera_spectrum_average = (np.array(camera1_spectrum) + np.array(camera2_spectrum) +np.array(camera3_spectrum)+ np.array(camera4_spectrum)) / 4
+    # camera2_wave, camera2_spectrum = filter_duplicates(*load_csv(camera_file2))
+    # camera3_wave, camera3_spectrum = filter_duplicates(*load_csv(camera_file3))
+    # camera4_wave, camera4_spectrum = filter_duplicates(*load_csv(camera_file4))
+    # camera_spectrum_average = (np.array(camera1_spectrum) + np.array(camera2_spectrum) +np.array(camera3_spectrum)+ np.array(camera4_spectrum)) / 4
+    camera_spectrum_average = np.array(camera1_spectrum)
 
     # Create Light model
     light = lg.LightSource()
-    light.init_generic_led_light(0.75*2500, 45)
-    lights_wavelength, lights_irradiance_spectrum = light.get_irradiance_spectrum(1)
+    light.init_generic_led_light(1.0*2500, 40)
+    lights_wavelength, lights_irradiance_spectrum = light.get_irradiance_spectrum(0.45)
 
     # Get water attenuation model and compute light on board
     water = wt.WaterPropagation()
-    water.load_jerlovIII_profile()
-    water_attenuation = [water.get_attenuation(x, 1) for x in lights_wavelength]
+    water.load_jerlovI_profile()
+    water_attenuation = [water.get_attenuation(x, 0.45) for x in lights_wavelength]
     model_board_spectrum = np.multiply(lights_irradiance_spectrum, water_attenuation)
 
     # Compute reflected spectrum
-    object_reflectivity = len(lights_wavelength) * [0.05]
+    object_reflectivity = len(lights_wavelength) * [0.27]
     model_board_reflection = np.multiply(model_board_spectrum, np.array(object_reflectivity))
 
     # Get camera incident spectrum
@@ -160,22 +175,28 @@ def analyze_complete_pipeline():
     for exposure_time in exposure_times:
         model_camera_response.append(camera.sensor.compute_digital_signal_broadband(
              exposure_time, lights_wavelength, model_camera_spectrum))
+        # model_camera_response.append(camera.sensor.compute_digital_signal_broadband(
+        #      exposure_time, camera1_wave, camera_spectrum_average))
+    # Reduction in light from 30mm lens with F/2
+    model_camera_response = (1/2.6)*np.array(model_camera_response)
 
     # Generate plots
     plt.figure(1)
     plt.subplot(331)
-    plt.plot(board1_wave, board1_spectrum, 'b', board2_wave, board2_spectrum, 'k', board3_wave, board3_spectrum, 'c',
-             board4_wave, board4_spectrum, 'r', board4_wave, board_spectrum_average, 'g')
+    plt.plot(board1_wave, board1_spectrum, 'b')
+    # plt.plot(board1_wave, board1_spectrum, 'b', board2_wave, board2_spectrum, 'k', board3_wave, board3_spectrum, 'c',
+    #          board4_wave, board4_spectrum, 'r', board4_wave, board_spectrum_average, 'g')
     plt.title('Board Incident Spectrum')
     plt.xlabel('Wavelength')
     plt.ylabel('Radiance W/(m2nm)')
-    plt.legend(['M1', 'M2', 'M3', 'M4', 'Average'])
+    # plt.legend(['M1', 'M2', 'M3', 'M4', 'Average'])
 
     plt.subplot(334)
-    plt.plot(camera1_wave,camera1_spectrum, 'b', camera2_wave, camera2_spectrum, 'k', camera3_wave, camera3_spectrum, 'c',
-             camera4_wave,camera4_spectrum, 'r',)
+    plt.plot(camera1_wave,camera1_spectrum, 'b')
+    # plt.plot(camera1_wave,camera1_spectrum, 'b', camera2_wave, camera2_spectrum, 'k', camera3_wave, camera3_spectrum, 'c',
+    #          camera4_wave,camera4_spectrum, 'r',)
     plt.xlabel('Wavelength')
-    plt.legend(['M1', 'M2', 'M3', 'M4'])
+    # plt.legend(['M1', 'M2', 'M3', 'M4'])
     plt.title('Camera Incident Spectrum')
     plt.ylabel('Radiance W/(m2nm)')
 
@@ -186,16 +207,18 @@ def analyze_complete_pipeline():
     plt.title('Attenuation factor')
 
     plt.subplot(332)
-    plt.plot(lights_wavelength, model_board_spectrum, 'r', board4_wave, board_spectrum_average, 'g')
+    plt.plot(lights_wavelength, model_board_spectrum, 'r', board1_wave, board_spectrum_average, 'g')
+    # plt.plot(lights_wavelength, model_board_spectrum, 'r')
     plt.title('Model Board Incident Spectrum')
     plt.xlabel('Wavelength')
     plt.ylabel('Radiance W/(m2nm)')
-    plt.legend(['Model', 'Measured Average'])
+    plt.legend(['Model', 'Measured'])
 
     plt.subplot(335)
-    plt.plot(lights_wavelength, model_camera_spectrum,'r', camera4_wave, camera_spectrum_average, 'g')
+    plt.plot(lights_wavelength, model_camera_spectrum,'r', camera1_wave, camera_spectrum_average, 'g')
+    # plt.plot(lights_wavelength, model_camera_spectrum,'r')
     plt.title('Model Camera Incident Spectrum')
-    plt.legend(['Model', 'Measured Average'])
+    plt.legend(['Model', 'Measured'])
     plt.xlabel('Wavelength')
     plt.ylabel('Radiance W/(m2nm)')
 

@@ -83,9 +83,9 @@ class CameraResponseExperiments():
             file = data_list[i][3]
             exposure_time = data_list[i][1]
             print("Lux value: {}".format(self.test_lux_values(file)))
-            response_broad, response_narrow, exposure = self.estimate_camera_response(file, exposure_time)
+            response_narrow, response_broad, exposure = self.estimate_camera_response(file, exposure_time)
             #model_response_narrow.append(response_narrow)
-            model_response_broad.append(response_broad*2**4)
+            model_response_broad.append(response_broad)
             exposure_values.append(exposure)
             measured_response.append(data_list[i][2])
             error_percent.append(100.0 * abs(response_broad - data_list[i][2]) / data_list[i][2])
@@ -146,13 +146,16 @@ def main():
     #sensor_path = "../cfg/imx178.json"
     #data_dir = "NewTests/BFS-U3-63S4M/ConstantLight/WhiteLight/Set1"
 
-    #sensor_path = "../cfg/imx250M.json"
-    #data_dir = "NewTests/BFS-U3-51S5M/ConstantLight/WhiteLight/Set1"
-    #data_dir = "OldTests/BFS-U3-51S5M/VaryingExposureTime/Set1"
+    # sensor_path = "../cfg/imx250M.json"
+    # data_dir = "NewTests/BFS-U3-51S5M/ConstantLight/WhiteLight/Set1"
+    # data_dir = "OldTests/BFS-U3-51S5M/VaryingExposureTime/Set1"
 
-    sensor_path = "../cfg/imx249.json"
-    data_dir = "NewTests/BFLY-U3-23S6M/ConstantLight/SpotLight/Set1"
-    #data_dir = "NewTests/BFLY-U3-23S6M/ConstantLight/WhiteLight/Set1"
+    # sensor_path = "../cfg/imx249.json"
+    # # data_dir = "NewTests/BFLY-U3-23S6M/ConstantLight/SpotLight/Set1"
+    # data_dir = "NewTests/BFLY-U3-23S6M/ConstantLight/WhiteLight/Set1"
+
+    sensor_path = "../cfg/imx178.json"
+    data_dir = "NewTests/BFS-U3-63S4M/ConstantLight/WhiteLight/Set1"
 
 
     experiments = CameraResponseExperiments(sensor_path, data_dir)
