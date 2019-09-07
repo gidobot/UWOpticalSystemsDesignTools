@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1255</width>
-    <height>691</height>
+    <height>693</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -1312,8 +1312,22 @@
        <string>Output</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="0" column="1">
-        <widget class="QLabel" name="fovxValueLabel">
+       <item row="3" column="2">
+        <widget class="QLabel" name="exposureUnitsLabel">
+         <property name="text">
+          <string>ms</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLabel" name="apertureUnitsLabel">
+         <property name="text">
+          <string>f-Number</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="fovyValueLabel">
          <property name="minimumSize">
           <size>
            <width>50</width>
@@ -1328,10 +1342,17 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="exposureLabel">
+       <item row="1" column="3">
+        <widget class="QLabel" name="fovyDegValueLabel">
          <property name="text">
-          <string>Max Exposure:</string>
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="7">
+        <widget class="QLabel" name="avgImgValueValueLabel">
+         <property name="text">
+          <string>0</string>
          </property>
         </widget>
        </item>
@@ -1342,71 +1363,37 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="2">
-        <widget class="QLabel" name="fovxUnitsLabel">
+       <item row="1" column="4">
+        <widget class="QLabel" name="fovyDegUnitsLabel">
          <property name="text">
-          <string>m</string>
+          <string>deg</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="5">
-        <widget class="QLabel" name="framerateValueLabel">
-         <property name="minimumSize">
+       <item row="0" column="10">
+        <spacer name="horizontalSpacer_7">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
           <size>
-           <width>20</width>
-           <height>0</height>
+           <width>40</width>
+           <height>20</height>
           </size>
          </property>
+        </spacer>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLabel" name="fovxDegValueLabel">
          <property name="text">
           <string>0</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="0">
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>15</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="FOVyLabel">
+       <item row="0" column="6">
+        <widget class="QLabel" name="framerateLabel">
          <property name="text">
-          <string>FOV_y:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="apertureLabel">
-         <property name="text">
-          <string>Min. Aperture:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="FOVxLabel">
-         <property name="text">
-          <string>FOV_x:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="7">
-        <widget class="QLabel" name="framerateUnitsLabel">
-         <property name="text">
-          <string>Hz</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="QLabel" name="apertureUnitsLabel">
-         <property name="text">
-          <string>f-Number</string>
+          <string>Framerate:</string>
          </property>
         </widget>
        </item>
@@ -1429,13 +1416,6 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="4">
-        <widget class="QLabel" name="framerateLabel">
-         <property name="text">
-          <string>Framerate:</string>
-         </property>
-        </widget>
-       </item>
        <item row="2" column="1">
         <widget class="QLabel" name="apertureValueLabel">
          <property name="minimumSize">
@@ -1452,21 +1432,90 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="3">
-        <spacer name="horizontalSpacer_5">
+       <item row="1" column="9">
+        <widget class="QLabel" name="avgImageValueUnitsLabel">
+         <property name="text">
+          <string>%</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <spacer name="verticalSpacer_2">
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>40</width>
-           <height>20</height>
+           <width>20</width>
+           <height>15</height>
           </size>
          </property>
         </spacer>
        </item>
-       <item row="1" column="1">
-        <widget class="QLabel" name="fovyValueLabel">
+       <item row="0" column="7">
+        <widget class="QLabel" name="framerateValueLabel">
+         <property name="minimumSize">
+          <size>
+           <width>20</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="FOVyLabel">
+         <property name="text">
+          <string>FOV y:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="4">
+        <widget class="QLabel" name="fovxDegUnitsLabel">
+         <property name="text">
+          <string>deg</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="fovxUnitsLabel">
+         <property name="text">
+          <string>m</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="9">
+        <widget class="QLabel" name="framerateUnitsLabel">
+         <property name="text">
+          <string>Hz</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="exposureLabel">
+         <property name="text">
+          <string>Max Exposure:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="apertureLabel">
+         <property name="text">
+          <string>Min. Aperture:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="FOVxLabel">
+         <property name="text">
+          <string>FOV x:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="fovxValueLabel">
          <property name="minimumSize">
           <size>
            <width>50</width>
@@ -1481,15 +1530,15 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="2">
-        <widget class="QLabel" name="exposureUnitsLabel">
+       <item row="1" column="6">
+        <widget class="QLabel" name="imgAvgValueLabel">
          <property name="text">
-          <string>ms</string>
+          <string>Avg Image Intensity:</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="8">
-        <spacer name="horizontalSpacer_7">
+       <item row="0" column="5">
+        <spacer name="horizontalSpacer_3">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -1500,27 +1549,6 @@
           </size>
          </property>
         </spacer>
-       </item>
-       <item row="1" column="4">
-        <widget class="QLabel" name="imgAvgValueLabel">
-         <property name="text">
-          <string>Avg Image Intensity:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="5">
-        <widget class="QLabel" name="avgImgValueValueLabel">
-         <property name="text">
-          <string>0</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="7">
-        <widget class="QLabel" name="avgImageValueUnitsLabel">
-         <property name="text">
-          <string>%</string>
-         </property>
-        </widget>
        </item>
       </layout>
      </widget>
@@ -1568,7 +1596,7 @@
      <x>0</x>
      <y>0</y>
      <width>1255</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuUnderwater_Optical_Systems_Calculator">
@@ -1598,14 +1626,6 @@
    <addaction name="menuFIle"/>
    <addaction name="menuMode"/>
    <addaction name="menuHelp"/>
-  </widget>
-  <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionSave">
