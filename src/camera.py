@@ -231,7 +231,7 @@ class Sensor:
         """
         photons = self.compute_absorbed_photons_broadband(wavelengths, incident_spectrum, exposure_time)
         print("Gain: {}, Dark Noise: {}".format(self.gain,self.dark_noise))
-        signal = self.gain/4 * (self.dark_noise+photons)
+        signal = self.gain * (self.dark_noise+photons)
         return signal
 
 

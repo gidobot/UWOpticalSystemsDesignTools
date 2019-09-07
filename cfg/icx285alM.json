@@ -7,8 +7,8 @@
   "max_shutter_time":"77300000",
   "min_shutter_time":"10",
   "pixel_size":"6.45",
-  "dark_noise":"13.7",
-  "gain": "1.11",
+  "dark_noise":"11.90",
+  "gain": "4.44",
   "quantum_efficiency_wavelengths": [
     403.0044,
     405.0849,
