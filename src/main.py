@@ -8,6 +8,7 @@ import mainwindow
 import sys
 import os
 import logging
+from math import pi
 
 class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWindow):
     def __init__(self):
@@ -103,7 +104,7 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
     def on_water_combobox(self, index):
         if index == 0:
             # Custom water attenuation profile
-            pass
+            self.model.water.reset()
         elif index == 1:
             # Load Jerlov I profile
             self.model.water.load_jerlovI_profile()
@@ -262,6 +263,8 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
     def updateUI(self):
         self.fovxValueLabel.setText(("%.2f" % self.model.fov_x))
         self.fovyValueLabel.setText("%.2f" % self.model.fov_y)
+        self.fovxDegValueLabel.setText("%.2f" % (self.model.fov_x_deg*180/pi))
+        self.fovyDegValueLabel.setText("%.2f" % (self.model.fov_y_deg*180/pi))
         self.exposureValueLabel.setText("%.2f" % (self.model.exposure*1000))
         self.framerateValueLabel.setText("%.2f" % self.model.framerate)
         self.apertureValueLabel.setText("%.2f" % self.model.aperture)
@@ -279,6 +282,8 @@ class Model:
 
         self.fov_x = 0
         self.fov_y = 0
+        self.fov_x_deg = 0
+        self.fov_y_deg = 0
         self.aperture = 0
         self.exposure = 0
         self.framerate = 0
@@ -294,6 +299,8 @@ class Model:
         if self.camera.initialized():
             self.fov_x = self.camera.get_fov('x', self.scene.altitude)
             self.fov_y = self.camera.get_fov('y', self.scene.altitude)
+            self.fov_x_deg = self.camera.get_angular_fov('x')
+            self.fov_y_deg = self.camera.get_angular_fov('y')
             self.exposure = self.camera.max_blur_shutter_time(self.scene.axis, self.scene.altitude,
                                                               self.scene.speed, self.scene.motion_blur)
             self.framerate = self.camera.compute_framerate(self.scene.axis, self.scene.altitude,
