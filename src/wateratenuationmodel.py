@@ -16,6 +16,10 @@ class WaterPropagation:
 
         self.jerlov_wavelenths = [300, 310, 350, 375, 400, 425, 450, 475, 500, 525, 550, 575, 600, 625, 650, 675, 700]
 
+    def reset(self):
+        self.initialized = False
+        self.attenuation_coef = []
+
     def get_attenuation(self, wavelength, distance):
 
         if not np.all(np.diff(self.jerlov_wavelenths) > 0):
