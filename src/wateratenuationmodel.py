@@ -26,8 +26,8 @@ class WaterPropagation:
             logger.error("Input Array not monotonically increasing for interpolation")
             raise ValueError("Input Array not monotonically increasing for interpolation")
 
-        if (wavelength < self.jerlov_wavelenths[0]) or (wavelength > self.jerlov_wavelenths[-1]):
-            logger.info("Requested value out of interpolation bounds")
+        #if (wavelength < self.jerlov_wavelenths[0]) or (wavelength > self.jerlov_wavelenths[-1]):
+        #    logger.info("Requested value out of interpolation bounds")
         b = np.interp(wavelength, self.jerlov_wavelenths, self.attenuation_coef)
         return math.exp(-b*distance)
 

@@ -234,8 +234,6 @@ class Sensor:
         signal = self.gain * (self.dark_noise+photons)
         return signal
 
-
-
     def get_sensor_size(self, axis):
         """
         Compute the sensor size in micrometers
@@ -328,8 +326,16 @@ class Lens:
         :param alfa: Off-Axis Angle
         :return: Irradiance reaching the pixel sensor
         """
-        E = L*(np.pi/4)*((1/N)**2)*np.cos(alfa)**4
+        E = L*self.lens_aperture_attenuation(N)*self.natural_vignetting(alfa)
         return E
+
+    @staticmethod
+    def lens_aperture_attenuation(N):
+        return (np.pi/4)*((1/N)**2)
+
+    @staticmethod
+    def natural_vignetting(alfa):
+        return np.cos(alfa)**4
 
     def get_aperture_diameter(self, N):
         """
@@ -369,6 +375,10 @@ class Camera:
         self.lens = Lens()
 
         self.housing = 'flat'
+
+        self.vectorized_dof = np.vectorize(self.compute_depth_of_field, excluded='self')
+        self.vectorized_framerate = np.vectorize(self.compute_framerate, excluded=['self', 'axis', 'overlap'])
+        self.vectorized_exposure = np.vectorize(self.max_blur_shutter_time, excluded=['self', 'axis', 'blur'])
 
     @property
     def effective_focal_length(self):
@@ -446,7 +456,7 @@ class Camera:
     def compute_depth_of_field(self, lens_aperture, focus_distance):
         f = self.effective_focal_length
         c = self.sensor.get_circle_of_confusion()
-        dof = (2*lens_aperture*c*f**2*focus_distance**2) / (f**4-lens_aperture**2*c**2*focus_distance**2)
+        dof = (2*lens_aperture*c*focus_distance**2) / (f**2)
         return dof
 
     def compute_aperture(self, dof, working_distance):

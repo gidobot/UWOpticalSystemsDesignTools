@@ -9,11 +9,15 @@ import sys
 import os
 import logging
 from math import pi
+import numpy as np
 
 import random
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
+
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWindow):
     def __init__(self):
@@ -21,10 +25,11 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         super(self.__class__, self).__init__()
         self.setupUi(self)  # This is defined in design.py file automatically
 
-        self.connections()
-
         self.model = Model()
         self.init_model()
+
+
+        self.connections()
 
         # Init compare camera view
         self.plotWidget = PlotWidget()
@@ -79,7 +84,14 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         self.cameraOrientationCombobox.currentIndexChanged.connect(self.on_orientation_combobox)
         self.viewportCombobox.currentIndexChanged.connect(self.on_housing_combobox)
 
+        # Chosen Exposure and Aperture connections
+        self.chosenApertureSlider.valueChanged.connect(self.on_aperture_slider)
+        self.chosenExposureSlider.valueChanged.connect(self.on_exposure_slider)
 
+        # Plots Buttons
+        self.dofPlot.clicked.connect(self.model.plotdof)
+        self.frameratePlot.clicked.connect(self.model.plotframerate)
+        self.exposurePlot.clicked.connect(self.model.plotmaxexp)
 
     def on_camera_info(self):
         if self.model.camera.sensor.initialized:
@@ -148,6 +160,7 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         elif index == 8:
             self.model.water.load_jerlov9C_profile()
             logging.info("Loaded Jerlov9C profile")
+        self.updateModel()
 
     def on_load_lens(self):
         """
@@ -230,6 +243,7 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         """
         self.model.light.init_generic_led_light(self.luminousFluxLineEdit.text(),
                                                     self.beamAngleSlider.value())
+        self.updateModel()
 
     def on_altitude_slider(self):
         self.model.scene.altitude = self.altitudeSlider.value()/100
@@ -274,6 +288,16 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
             logging.error("Invalid housing option in callback")
         self.updateModel()
 
+    def on_aperture_slider(self):
+        self.model.aperture = self.chosenApertureSlider.value() / 10
+        logging.info("Modified aperture to %.2f.", self.model.aperture)
+        self.updateModel()
+
+    def on_exposure_slider(self):
+        self.model.exposure = self.chosenExposureSlider.value()/1000000
+        logging.info("Modified exposure to %.2f.", self.model.exposure)
+        self.updateModel()
+
     def updateModel(self):
         self.model.update()
         self.updateUI()
@@ -283,13 +307,16 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         self.fovyValueLabel.setText("%.2f" % self.model.fov_y)
         self.fovxDegValueLabel.setText("%.2f" % (self.model.fov_x_deg*180/pi))
         self.fovyDegValueLabel.setText("%.2f" % (self.model.fov_y_deg*180/pi))
-        self.exposureValueLabel.setText("%.2f" % (self.model.exposure*1000))
+        self.exposureValueLabel.setText("%.2f" % (self.model.max_exposure*1000))
         self.framerateValueLabel.setText("%.2f" % self.model.framerate)
-        self.apertureValueLabel.setText("%.2f" % self.model.aperture)
+        self.apertureValueLabel.setText("%.2f" % self.model.min_aperture)
         self.effectiveFocalLengthValueLabel.setText("%.2f" % self.model.eff_focal_length)
+        self.avgImgValueValueLabel.setText("%.2f" % self.model.response)
+        self.chosenApertureValueLabel.setText("%.2f" % self.model.aperture)
+        self.chosenExposureValueLabel.setText("%5.2f" % (self.model.exposure*1000))
+        self.chosenApertureSlider.setMinimum(self.model.min_aperture*10)
+        self.chosenExposureSlider.setMaximum(self.model.max_exposure*1000000)
 
-    def test(self):
-        print("Test!")
 
 class Model:
     def __init__(self):
@@ -302,10 +329,13 @@ class Model:
         self.fov_y = 0
         self.fov_x_deg = 0
         self.fov_y_deg = 0
-        self.aperture = 0
+        self.aperture = 2
+        self.min_aperture = 1.4
         self.exposure = 0
+        self.max_exposure = 1
         self.framerate = 0
         self.eff_focal_length = 0
+        self.response = 0
 
     def update(self):
         logging.info("Updating model")
@@ -319,34 +349,88 @@ class Model:
             self.fov_y = self.camera.get_fov('y', self.scene.altitude)
             self.fov_x_deg = self.camera.get_angular_fov('x')
             self.fov_y_deg = self.camera.get_angular_fov('y')
-            self.exposure = self.camera.max_blur_shutter_time(self.scene.axis, self.scene.altitude,
+            self.max_exposure = self.camera.max_blur_shutter_time(self.scene.axis, self.scene.altitude,
                                                               self.scene.speed, self.scene.motion_blur)
             self.framerate = self.camera.compute_framerate(self.scene.axis, self.scene.altitude,
                                                            self.scene.speed, self.scene.overlap)
-            self.aperture = self.camera.compute_aperture(self.scene.depthoffield, self.scene.altitude)
+            self.min_aperture = self.camera.compute_aperture(self.scene.depthoffield, self.scene.altitude)
+            if self.min_aperture <= 1:
+                self.min_aperture = 1
+            elif self.min_aperture >= 64:
+                self.min_aperture = 64
 
         else:
             self.fov_y = 0
             self.fov_x = 0
-            self.exposure = 0
             self.framerate = 0
-            self.aperture = 0
+
 
         if self.camera.initialized() and self.water.initialized and self.light.initialized:
             logging.info("Updating full image formation model")
 
             lights_wavelength, lights_irradiance_spectrum = self.light.get_irradiance_spectrum(self.scene.altitude)
-            print(max(lights_wavelength))
-            print(min(lights_wavelength))
+            print(np.max(lights_irradiance_spectrum))
             water_attenuation = [self.water.get_attenuation(x, self.scene.altitude) for x in lights_wavelength]
+            print(np.max(water_attenuation))
             # TODO: Get reflection value
             reflection = [0.53] * len(water_attenuation)
 
-            lens_transmittance = [self.camera.lens.get_transmittance(x) for x in lights_wavelength]
-            #incident_spectrum = lights_irradiance_spectrum * water_attenuation**2 * reflection * lens_transmittance
+            lens_transmittance = [self.camera.lens.get_transmittance(x)*
+                                  self.camera.lens.lens_aperture_attenuation(self.aperture)
+                                  for x in lights_wavelength]
+            incident_spectrum = lights_irradiance_spectrum * np.power(water_attenuation, 2) * reflection * lens_transmittance
 
-            # Compute irradiance
+            self.response = (self.camera.sensor.compute_digital_signal_broadband(self.exposure,
+                                                                                lights_wavelength,
+                                                                                incident_spectrum)/2**16)*100
 
+
+    def plotframerate(self):
+        speed = np.arange(0.1, 3, 0.1)
+        d = np.arange(0.5, 3, 0.1)
+
+        ss, dd = np.meshgrid(speed, d)
+        framerate = self.camera.vectorized_framerate(self.scene.axis, dd, ss, self.scene.overlap)
+
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        ax.set_title("Frequency")
+        ax.set_xlabel("Speed [m/s]")
+        ax.set_ylabel("Target Distance [m]")
+        ax.set_zlabel("Framerate [Hz}")
+        surf = ax.plot_surface(ss, dd, framerate)
+        plt.show()
+
+    def plotmaxexp(self):
+        speed = np.arange(0.2, 3, 0.1)
+        d = np.arange(0.5, 3, 0.1)
+        ss, dd = np.meshgrid(speed, d)
+        exposure = self.camera.vectorized_exposure(self.scene.axis, dd, ss, self.scene.motion_blur)*1000
+
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        ax.set_title("Max exposure")
+        ax.set_xlabel("Speed [m/s]")
+        ax.set_ylabel("Target Distance [m]")
+        ax.set_zlabel("Max exposure [ms]")
+        surf = ax.plot_surface(ss, dd, exposure)
+        plt.show()
+
+    def plotdof(self):
+        N = np.arange(1, 12, 0.1)
+        d = np.arange(500, 2000, 100)
+        nn, dd = np.meshgrid(N, d)
+        res = self.camera.vectorized_dof(nn, dd)/1000
+
+
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        ax.set_title("Depth of field")
+        ax.set_xlabel("Aperture (f#)")
+        ax.set_ylabel("Target Distance")
+        ax.set_zlabel("Depth of field")
+        surf = ax.plot_surface(nn, dd, res)
+        plt.show()
 
 def main():
     # logging.basicConfig(filename='/home/eiscar/myapp.log', level=logging.DEBUG, filemode='w')
