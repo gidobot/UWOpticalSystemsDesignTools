@@ -10,6 +10,7 @@ import os
 import logging
 from math import pi
 import numpy as np
+import glob
 
 import random
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -36,12 +37,23 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         self.plotWidget.plot()
 
     def init_model(self):
-        self.model.scene.altitude = self.altitudeSlider.value()/100
-        self.model.scene.overlap = self.overlapSlider.value()/100
-        self.model.scene.speed = self.speedSlider.value()/100
-        self.model.scene.motion_blur = self.motionBlurSlider.value()
-        self.model.scene.depthoffield = self.dofSlider.value()/100
+        self.on_altitude_slider()
+        self.on_overlap_slider()
+        self.on_speed_slider()
+        self.on_motionblur_slider()
         self.on_orientation_combobox(self.cameraOrientationCombobox.currentIndex())
+        self.on_lens_combobox(self.LensComboBox.currentIndex())
+        self.on_light_combobox(self.LightsComboBox.currentIndex())
+
+        for key in self.model.scene.bottom_type_dict:
+            self.bottomTypeCombo.addItem(key)
+
+        sensor_file_list = glob.glob("../cfg/sensors/*.json")
+        self.sensor_dict = {}
+        for file in sensor_file_list:
+            name = os.path.splitext(os.path.split(file)[1])[0]
+            self.sensor_dict[name] = file
+            self.cameraComboBox.addItem(name)
 
     def connections(self):
         """
@@ -58,7 +70,8 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         # Lights connections
         self.LightsComboBox.currentIndexChanged.connect(self.on_light_combobox)
         self.beamAngleSlider.valueChanged.connect(self.init_generic_led)
-        self.luminousFluxLineEdit.textEdited.connect(self.init_generic_led)
+        self.beamAngleLineEdit.editingFinished.connect(self.on_beam_angle_change)
+        self.luminousFluxLineEdit.editingFinished.connect(self.init_generic_led)
         self.lightsInfoButton.clicked.connect(self.on_lights_info)
 
         # Water connections
@@ -68,25 +81,34 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         self.lensLoadFileButton.clicked.connect(self.on_load_lens)
         self.LensComboBox.currentIndexChanged.connect(self.on_lens_combobox)
         self.focalLengthSlider.valueChanged.connect(self.on_generic_lens_sliders)
+        self.focalLengthLineEdit.editingFinished.connect(self.on_focal_length_change)
         self.transmittanceSlider.valueChanged.connect(self.on_generic_lens_sliders)
+        self.transmittanceLineEdit.editingFinished.connect(self.on_transmittance_change)
         self.lensInfoButton.clicked.connect(self.on_lens_info)
 
         # Camera connections
         self.cameraLoadFileButton.clicked.connect(self.on_load_camera)
         self.cameraInfoButton.clicked.connect(self.on_camera_info)
+        self.cameraComboBox.currentIndexChanged.connect(self.on_camera_combobox)
 
         # Scene connections
         self.altitudeSlider.valueChanged.connect(self.on_altitude_slider)
+        self.altitudeLineEdit.editingFinished.connect(self.on_altitude_change)
         self.overlapSlider.valueChanged.connect(self.on_overlap_slider)
+        self.overlapLineEdit.editingFinished.connect(self.on_overlap_change)
         self.speedSlider.valueChanged.connect(self.on_speed_slider)
+        self.speedLineEdit.editingFinished.connect(self.on_speed_change)
         self.motionBlurSlider.valueChanged.connect(self.on_motionblur_slider)
-        self.dofSlider.valueChanged.connect(self.on_depthoffield_slider)
+        self.motionBlurLineEdit.editingFinished.connect(self.on_motionblur_change)
         self.cameraOrientationCombobox.currentIndexChanged.connect(self.on_orientation_combobox)
         self.viewportCombobox.currentIndexChanged.connect(self.on_housing_combobox)
+        self.bottomTypeCombo.currentIndexChanged.connect(self.on_bottom_combo)
 
         # Chosen Exposure and Aperture connections
         self.chosenApertureSlider.valueChanged.connect(self.on_aperture_slider)
+        self.apertureLineEdit.editingFinished.connect(self.on_aperture_change)
         self.chosenExposureSlider.valueChanged.connect(self.on_exposure_slider)
+        self.chosenExposureLineEdit.editingFinished.connect(self.on_exposure_change)
 
         # Plots Buttons
         self.dofPlot.clicked.connect(self.model.plotdof)
@@ -95,6 +117,8 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
 
     def on_camera_info(self):
         if self.model.camera.sensor.initialized:
+            print(self.model.camera.sensor.quantum_efficiency_wav)
+            print(self.model.camera.sensor.quantum_efficiency)
             graph = GraphWindow(self.model.camera.sensor.quantum_efficiency_wav,
                                 self.model.camera.sensor.quantum_efficiency,
                                 "Wavelength [nm]", "Quantum efficiency", self)
@@ -174,7 +198,8 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         if os.path.isfile(filename):
             if lens.load(filename):
                 self.lensLoadedFileLabel.setText(lens.name)
-                self.focalLengthValueLabel.setNum(lens.focal_length)
+                self.focalLengthLineEdit.setText(("%f" % lens.focal_length))
+                self.transmittanceLineEdit.setText(("%f" % lens.transmittance))
                 logging.info("Loaded Lens.")
                 self.updateModel()
 
@@ -184,11 +209,27 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         changed
         :return: None
         """
-        f = self.focalLengthSlider.value()
-        t = self.transmittanceSlider.value()/100
+        f = float(self.focalLengthSlider.value())
+        t = float(self.transmittanceSlider.value())/100.
         self.model.camera.lens.init_generic_lens(f, t)
+        self.focalLengthLineEdit.setText(("%i" % self.focalLengthSlider.value()))
+        self.transmittanceLineEdit.setText(("%i" % self.transmittanceSlider.value()))
         logging.info("Created generic lens with focal length %i and transmittance value of %f.",f,t)
         self.updateModel()
+
+    def on_focal_length_change(self):
+        try:
+            self.focalLengthSlider.setValue(int(self.focalLengthLineEdit.text()))
+            self.on_generic_lens_sliders()
+        except Exception as e:
+            self.focalLengthLineEdit.setText(("%i" % self.focalLengthSlider.value()))
+
+    def on_transmittance_change(self):
+        try:
+            self.transmittanceSlider.setValue(int(self.transmittanceLineEdit.text()))
+            self.on_generic_lens_sliders()
+        except Exception as e:
+            self.transmittanceLineEdit.setText(("%i" % self.transmittanceSlider.value()))
 
     def on_lens_combobox(self, index):
         """
@@ -198,22 +239,29 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         """
         if index == 1:
             logging.info("Changing to generic lens model")
-            f = self.focalLengthSlider.value()
-            t = self.transmittanceSlider.value()/100
-            self.model.camera.lens.init_generic_lens(f, t)
+            self.on_generic_lens_sliders()
         elif index == 0:
             logging.info("Changing to custom lens model")
             self.lensLoadedFileLabel.setText("No File Loaded")
-            self.focalLengthValueLabel.setNum(0)
+            self.focalLengthLineEdit.setText("0")
             self.model.camera.lens.reset()
         self.updateModel()
 
+    def on_camera_combobox(self, index):
+        name = self.cameraComboBox.currentText()
+        if name != "Custom":
+            filename = self.sensor_dict[name]
+            self.load_sensor(filename)
+
     def on_load_camera(self):
-
-        sensor = self.model.camera.sensor
-
         filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', QtCore.QDir.homePath())
+        self.load_sensor(filename)
+        index = self.cameraComboBox.findText("Custom", QtCore.Qt.MatchFixedString)
+        if index >= 0:
+            self.cameraComboBox.setCurrentIndex(index)
 
+    def load_sensor(self, filename):
+        sensor = self.model.camera.sensor
         if os.path.isfile(filename):
             if sensor.load(filename):
                 self.pixelSizeValueLabel.setNum(sensor.pixel_size)
@@ -223,7 +271,7 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
                 self.cameraLoadedFileLabel.setText(os.path.basename(filename))
                 self.updateModel()
 
-                logging.info("Loaded Lens.")
+                logging.info("Loaded Sensor.")
 
     def on_light_combobox(self, index):
         if index == 0:
@@ -242,33 +290,68 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         :return:
         """
         self.model.light.init_generic_led_light(self.luminousFluxLineEdit.text(),
-                                                    self.beamAngleSlider.value())
+                                                    float(self.beamAngleSlider.value()))
+        self.beamAngleLineEdit.setText(("%i" % self.beamAngleSlider.value()))
         self.updateModel()
+
+    def on_beam_angle_change(self):
+        try:
+            self.beamAngleSlider.setValue(int(self.beamAngleLineEdit.text()))
+            self.init_generic_led()
+        except Exception as e:
+            self.beamAngleLineEdit.setText(("%i" % self.beamAngleSlider.value()))
 
     def on_altitude_slider(self):
-        self.model.scene.altitude = self.altitudeSlider.value()/100
-        logging.info("Modified altitude to %.2f", self.model.scene.altitude)
+        self.model.scene.altitude = float(self.altitudeSlider.value())/10.
+        self.altitudeLineEdit.setText(("%.1f" % self.model.scene.altitude))
+        logging.info("Modified altitude to %.1f", self.model.scene.altitude)
         self.updateModel()
 
+    def on_altitude_change(self):
+        try:
+            self.altitudeSlider.setValue(float(self.altitudeLineEdit.text())*10)
+            self.on_altitude_slider()
+        except Exception as e:
+            self.altitudeLineEdit.setText(("%.1f" % float(self.altitudeSlider.value())/10.))
+
     def on_overlap_slider(self):
-        self.model.scene.overlap = self.overlapSlider.value()/100
+        self.model.scene.overlap = float(self.overlapSlider.value())/100.
+        self.overlapLineEdit.setText(("%i" % self.overlapSlider.value()))
         logging.info("Modified overlap to %.2f", self.model.scene.overlap)
         self.updateModel()
 
+    def on_overlap_change(self):
+        try:
+            self.overlapSlider.setValue(int(self.overlapLineEdit.text()))
+            self.on_overlap_slider()
+        except Exception as e:
+            self.overlapLineEdit.setText(("%i" % self.overlapSlider.value()))
+
     def on_speed_slider(self):
-        self.model.scene.speed = self.speedSlider.value()/100
-        logging.info("Modified speed to %.2f.", self.model.scene.speed)
+        self.model.scene.speed = float(self.speedSlider.value())/10.
+        self.speedLineEdit.setText(("%.1f" % self.model.scene.speed))
+        logging.info("Modified speed to %.1f", self.model.scene.speed)
         self.updateModel()
+
+    def on_speed_change(self):
+        try:
+            self.speedSlider.setValue(float(self.speedLineEdit.text())*10.)
+            self.on_speed_slider()
+        except Exception as e:
+            self.speedLineEdit.setText(("%.1f" % float(self.speedSlider.value())/10.))
 
     def on_motionblur_slider(self):
-        self.model.scene.motion_blur = self.motionBlurSlider.value()
-        logging.info("Modified max motion blur to %i.", self.model.scene.motion_blur)
+        self.model.scene.motion_blur = float(self.motionBlurSlider.value())
+        self.motionBlurLineEdit.setText(("%i" % self.model.scene.motion_blur))
+        logging.info("Modified max motion blur to %i", self.model.scene.motion_blur)
         self.updateModel()
 
-    def on_depthoffield_slider(self):
-        self.model.scene.depthoffield = self.dofSlider.value()/100
-        logging.info("Modified overlap to %.2f.", self.model.scene.depthoffield)
-        self.updateModel()
+    def on_motionblur_change(self):
+        try:
+            self.motionBlurSlider.setValue(int(self.motionBlurLineEdit.text()))
+            self.on_motionBlur_slider()
+        except Exception as e:
+            self.motionBlurLineEdit.setText(("%i" % self.motionBlurSlider.value()))
 
     def on_orientation_combobox(self, index):
         if index == 0:
@@ -288,15 +371,43 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
             logging.error("Invalid housing option in callback")
         self.updateModel()
 
-    def on_aperture_slider(self):
-        self.model.aperture = self.chosenApertureSlider.value() / 10
-        logging.info("Modified aperture to %.2f.", self.model.aperture)
+    def on_bottom_combo(self, index):
+        self.model.scene.set_bottom_type(self.bottomTypeCombo.currentText())
         self.updateModel()
 
-    def on_exposure_slider(self):
-        self.model.exposure = self.chosenExposureSlider.value()/1000000
-        logging.info("Modified exposure to %.2f.", self.model.exposure)
+    def on_aperture_slider(self):
+        self.model.aperture = float(self.chosenApertureSlider.value()) / 10.
+        self.apertureLineEdit.setText("%.1f" % self.model.aperture)
+        logging.info("Modified aperture to %.1f.", self.model.aperture)
         self.updateModel()
+
+    def on_aperture_change(self):
+        try:
+            self.chosenApertureSlider.setValue(float(self.apertureLineEdit.text())*10)
+            self.on_aperture_slider()
+        except Exception as e:
+            self.apertureLineEdit.setText("%.1f" % (float(self.chosenApertureSlider.value())/10.))
+
+    def on_exposure_slider(self):
+        exposure = float(self.chosenExposureSlider.value())/1000000.
+        if exposure > self.model.max_exposure:
+            self.model.exposure = self.model.max_exposure
+            self.update_exposure_slider()
+        else:
+            self.model.exposure = exposure
+        self.chosenExposureLineEdit.setText(("%.2f" % (self.model.exposure*1000.)))
+        logging.info("Modified exposure to %.2fms", (self.model.exposure*1000.))
+        self.updateModel()
+
+    def update_exposure_slider(self):
+        self.chosenExposureSlider.setValue(self.model.exposure*1000000.)
+
+    def on_exposure_change(self):
+        try:
+            self.chosenExposureSlider.setValue(float(self.chosenExposureLineEdit.text())*1000.)
+            self.on_exposure_slider()
+        except Exception as e:
+            self.chosenExposureLineEdit.setText(("%.2f" % (self.model.exposure*1000.)))
 
     def updateModel(self):
         self.model.update()
@@ -305,18 +416,18 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
     def updateUI(self):
         self.fovxValueLabel.setText(("%.2f" % self.model.fov_x))
         self.fovyValueLabel.setText("%.2f" % self.model.fov_y)
-        self.fovxDegValueLabel.setText("%.2f" % (self.model.fov_x_deg*180/pi))
-        self.fovyDegValueLabel.setText("%.2f" % (self.model.fov_y_deg*180/pi))
-        self.exposureValueLabel.setText("%.2f" % (self.model.max_exposure*1000))
+        self.fovxDegValueLabel.setText("%.2f" % (self.model.fov_x_deg*180./pi))
+        self.fovyDegValueLabel.setText("%.2f" % (self.model.fov_y_deg*180./pi))
+        self.exposureValueLabel.setText("%.2f" % (self.model.max_exposure*1000.))
         self.framerateValueLabel.setText("%.2f" % self.model.framerate)
-        self.apertureValueLabel.setText("%.2f" % self.model.min_aperture)
         self.effectiveFocalLengthValueLabel.setText("%.2f" % self.model.eff_focal_length)
         self.avgImgValueValueLabel.setText("%.2f" % self.model.response)
-        self.chosenApertureValueLabel.setText("%.2f" % self.model.aperture)
-        self.chosenExposureValueLabel.setText("%5.2f" % (self.model.exposure*1000))
-        self.chosenApertureSlider.setMinimum(self.model.min_aperture*10)
-        self.chosenExposureSlider.setMaximum(self.model.max_exposure*1000000)
-
+        self.dofNearValueLabel.setText("%.1f" % (self.model.scene.depthoffield[0]))
+        self.dofFarValueLabel.setText("%.1f" % (self.model.scene.depthoffield[1]))
+        self.chosenExposureSlider.setMaximum(self.model.max_exposure*1000000.)
+        if float(self.chosenExposureLineEdit.text())/1000. > self.model.max_exposure:
+            self.chosenExposureLineEdit.setText("%.2f" % (self.model.max_exposure*1000.))
+            self.update_exposure_slider()
 
 class Model:
     def __init__(self):
@@ -325,24 +436,23 @@ class Model:
         self.scene = OperationalParameters()
         self.water = WaterPropagation()
 
-        self.fov_x = 0
-        self.fov_y = 0
-        self.fov_x_deg = 0
-        self.fov_y_deg = 0
-        self.aperture = 2
-        self.min_aperture = 1.4
-        self.exposure = 0
-        self.max_exposure = 1
-        self.framerate = 0
-        self.eff_focal_length = 0
-        self.response = 0
+        self.fov_x = 0.
+        self.fov_y = 0.
+        self.fov_x_deg = 0.
+        self.fov_y_deg = 0.
+        self.aperture = 2.
+        self.exposure = 0.
+        self.max_exposure = 1.
+        self.framerate = 0.
+        self.eff_focal_length = 0.
+        self.response = 0.
 
     def update(self):
         logging.info("Updating model")
         if self.camera.lens.initialized:
             self.eff_focal_length = self.camera.effective_focal_length
         else:
-            self.eff_focal_length = 0
+            self.eff_focal_length = 0.
 
         if self.camera.initialized():
             self.fov_x = self.camera.get_fov('x', self.scene.altitude)
@@ -353,16 +463,12 @@ class Model:
                                                               self.scene.speed, self.scene.motion_blur)
             self.framerate = self.camera.compute_framerate(self.scene.axis, self.scene.altitude,
                                                            self.scene.speed, self.scene.overlap)
-            self.min_aperture = self.camera.compute_aperture(self.scene.depthoffield, self.scene.altitude)
-            if self.min_aperture <= 1:
-                self.min_aperture = 1
-            elif self.min_aperture >= 64:
-                self.min_aperture = 64
+            self.scene.depthoffield = self.camera.compute_depth_of_field(self.aperture, self.scene.altitude)
 
         else:
-            self.fov_y = 0
-            self.fov_x = 0
-            self.framerate = 0
+            self.fov_y = 0.
+            self.fov_x = 0.
+            self.framerate = 0.
 
 
         if self.camera.initialized() and self.water.initialized and self.light.initialized:
@@ -373,13 +479,16 @@ class Model:
             water_attenuation = [self.water.get_attenuation(x, self.scene.altitude) for x in lights_wavelength]
             print(np.max(water_attenuation))
             # TODO: Get reflection value
-            reflection = [0.53] * len(water_attenuation)
+            # reflection = [0.53] * len(lights_wavelength)
+            reflection = [self.scene.get_reflectance()] * len(lights_wavelength)
+            print("Reflectance: {}".format(self.scene.get_reflectance()))
 
             lens_transmittance = [self.camera.lens.get_transmittance(x)*
                                   self.camera.lens.lens_aperture_attenuation(self.aperture)
                                   for x in lights_wavelength]
             incident_spectrum = lights_irradiance_spectrum * np.power(water_attenuation, 2) * reflection * lens_transmittance
 
+            # TODO: Currently assumes all sensor parameters given relative to 16bit pixel response
             self.response = (self.camera.sensor.compute_digital_signal_broadband(self.exposure,
                                                                                 lights_wavelength,
                                                                                 incident_spectrum)/2**16)*100
@@ -405,7 +514,7 @@ class Model:
         speed = np.arange(0.2, 3, 0.1)
         d = np.arange(0.5, 3, 0.1)
         ss, dd = np.meshgrid(speed, d)
-        exposure = self.camera.vectorized_exposure(self.scene.axis, dd, ss, self.scene.motion_blur)*1000
+        exposure = self.camera.vectorized_exposure(self.scene.axis, dd, ss, self.scene.motion_blur)*1000.
 
         fig = plt.figure()
         ax = fig.gca(projection='3d')
@@ -420,7 +529,7 @@ class Model:
         N = np.arange(1, 12, 0.1)
         d = np.arange(500, 2000, 100)
         nn, dd = np.meshgrid(N, d)
-        res = self.camera.vectorized_dof(nn, dd)/1000
+        res = self.camera.vectorized_dof(nn, dd)/1000.
 
 
         fig = plt.figure()

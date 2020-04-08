@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1255</width>
+    <width>1284</width>
     <height>693</height>
    </rect>
   </property>
@@ -37,224 +37,40 @@
          <string>Output</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_4">
-         <item row="0" column="0">
-          <widget class="QLabel" name="apertureLabel">
+         <item row="4" column="0">
+          <widget class="QLabel" name="FOVyLabel">
            <property name="text">
-            <string>Min. Aperture:</string>
+            <string>FOV y:</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="2">
-          <widget class="QLabel" name="exposureUnitsLabel">
+         <item row="3" column="9">
+          <widget class="QLabel" name="avgImageValueUnitsLabel">
+           <property name="text">
+            <string>%</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLabel" name="fovxValueLabel">
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="9">
+          <widget class="QLabel" name="chosenExposureUnitsLabel">
            <property name="text">
             <string>ms</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="8">
-          <widget class="QLabel" name="chosenApertureValueLabel">
-           <property name="text">
-            <string>2.0</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="2">
-          <widget class="QLabel" name="fovxUnitsLabel">
-           <property name="text">
-            <string>m</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="4">
-          <widget class="QLabel" name="fovyDegUnitsLabel">
-           <property name="text">
-            <string>deg</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="apertureUnitsLabel">
-           <property name="text">
-            <string>f-Number</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="3">
-          <widget class="QLabel" name="fovyDegValueLabel">
-           <property name="text">
-            <string>0</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="6">
-          <widget class="QLabel" name="chosenExposureLabel">
-           <property name="text">
-            <string>Chosen Exposure time</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QLabel" name="fovyValueLabel">
-           <property name="minimumSize">
-            <size>
-             <width>50</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>0</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="FOVxLabel">
-           <property name="text">
-            <string>FOV x:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="3">
-          <widget class="QLabel" name="fovxDegValueLabel">
-           <property name="text">
-            <string>0</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="4">
-          <widget class="QLabel" name="fovxDegUnitsLabel">
-           <property name="text">
-            <string>deg</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="8">
-          <widget class="QLabel" name="chosenExposureValueLabel">
-           <property name="text">
-            <string>0</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="5">
-          <spacer name="horizontalSpacer_3">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="apertureValueLabel">
-           <property name="minimumSize">
-            <size>
-             <width>50</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>0</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="10">
-          <spacer name="horizontalSpacer_5">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="exposureLabel">
-           <property name="text">
-            <string>Max Exposure:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="2">
-          <widget class="QLabel" name="fovyUnitsLabel">
-           <property name="text">
-            <string>m</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="7">
-          <widget class="QLabel" name="avgImgValueValueLabel">
-           <property name="text">
-            <string>0</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="7">
-          <widget class="QSlider" name="chosenExposureSlider">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximum">
-            <number>100000</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="6">
-          <widget class="QLabel" name="chosenApertureLabel">
-           <property name="text">
-            <string>Chosen Aperture</string>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="0">
-          <spacer name="verticalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>15</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item row="0" column="7">
-          <widget class="QSlider" name="chosenApertureSlider">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimum">
-            <number>14</number>
-           </property>
-           <property name="maximum">
-            <number>140</number>
-           </property>
-           <property name="value">
-            <number>20</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
            </property>
           </widget>
          </item>
@@ -284,15 +100,62 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="FOVyLabel">
+         <item row="2" column="10">
+          <spacer name="horizontalSpacer_5">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="7" column="0">
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>15</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="exposureLabel">
            <property name="text">
-            <string>FOV y:</string>
+            <string>Max Exposure:</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="1">
-          <widget class="QLabel" name="fovxValueLabel">
+         <item row="4" column="2">
+          <widget class="QLabel" name="fovyUnitsLabel">
+           <property name="text">
+            <string>m</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="3">
+          <widget class="QLabel" name="fovyDegValueLabel">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="6">
+          <widget class="QLabel" name="chosenExposureLabel">
+           <property name="text">
+            <string>Exposure time</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLabel" name="fovyValueLabel">
            <property name="minimumSize">
             <size>
              <width>50</width>
@@ -307,35 +170,125 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="9">
-          <widget class="QLabel" name="chosenApertureUnitsLabel">
+         <item row="3" column="0">
+          <widget class="QLabel" name="FOVxLabel">
            <property name="text">
-            <string>f-Number</string>
+            <string>FOV x:</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="9">
-          <widget class="QLabel" name="chosenExposureUnitsLabel">
+         <item row="2" column="2">
+          <widget class="QLabel" name="exposureUnitsLabel">
            <property name="text">
             <string>ms</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="9">
-          <widget class="QLabel" name="avgImageValueUnitsLabel">
+         <item row="4" column="5">
+          <spacer name="horizontalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="3" column="4">
+          <widget class="QLabel" name="fovxDegUnitsLabel">
            <property name="text">
-            <string>%</string>
+            <string>deg</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="11">
+         <item row="2" column="7">
+          <widget class="QSlider" name="chosenExposureSlider">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximum">
+            <number>10000</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="4">
+          <widget class="QLabel" name="fovyDegUnitsLabel">
+           <property name="text">
+            <string>deg</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2">
+          <widget class="QLabel" name="fovxUnitsLabel">
+           <property name="text">
+            <string>m</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3">
+          <widget class="QLabel" name="fovxDegValueLabel">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLabel" name="dofNearUnitsLabel">
+           <property name="text">
+            <string>m</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="dofLabel">
+           <property name="text">
+            <string>Near Depth of Field Limit:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="dofNearValueLabel">
+           <property name="minimumSize">
+            <size>
+             <width>25</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="7" colspan="2">
+          <widget class="QLabel" name="avgImgValueValueLabel">
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="6">
           <widget class="QLabel" name="framerateLabel">
            <property name="text">
-            <string>Framerate:</string>
+            <string>Min Framerate:</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="12">
+         <item row="4" column="7" colspan="2">
           <widget class="QLabel" name="framerateValueLabel">
            <property name="minimumSize">
             <size>
@@ -346,12 +299,67 @@
            <property name="text">
             <string>0</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
           </widget>
          </item>
-         <item row="0" column="13">
+         <item row="4" column="9">
           <widget class="QLabel" name="framerateUnitsLabel">
            <property name="text">
             <string>Hz</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Far Depth of Field Limit:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="dofFarValueLabel">
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLabel" name="dofFarUnitsLabel">
+           <property name="text">
+            <string>m</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="8">
+          <widget class="QLineEdit" name="chosenExposureLineEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>50</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -545,6 +553,9 @@
           <layout class="QGridLayout" name="gridLayout_2">
            <item row="0" column="1">
             <widget class="QComboBox" name="LensComboBox">
+             <property name="currentIndex">
+              <number>1</number>
+             </property>
              <item>
               <property name="text">
                <string>Custom </string>
@@ -575,7 +586,7 @@
             </size>
            </property>
            <property name="currentIndex">
-            <number>0</number>
+            <number>1</number>
            </property>
            <widget class="QWidget" name="page_9">
             <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -668,42 +679,10 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="3">
-              <widget class="QLabel" name="transmittanceValueLabel">
-               <property name="minimumSize">
-                <size>
-                 <width>30</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>90</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
              <item row="2" column="4">
               <widget class="QLabel" name="transmittanceUnitsLabel">
                <property name="text">
                 <string>%</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="3">
-              <widget class="QLabel" name="focalLengthSliderValueLabel">
-               <property name="minimumSize">
-                <size>
-                 <width>25</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>8</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -732,6 +711,34 @@
                </property>
               </widget>
              </item>
+             <item row="0" column="3">
+              <widget class="QLineEdit" name="focalLengthLineEdit">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>30</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>5</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>8</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
              <item row="0" column="2">
               <spacer name="horizontalSpacer_9">
                <property name="orientation">
@@ -744,6 +751,34 @@
                 </size>
                </property>
               </spacer>
+             </item>
+             <item row="2" column="3">
+              <widget class="QLineEdit" name="transmittanceLineEdit">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>20</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>50</width>
+                 <height>30</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>90</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
              </item>
             </layout>
            </widget>
@@ -818,9 +853,9 @@
        <widget class="QGroupBox" name="SensorBox">
         <property name="geometry">
          <rect>
-          <x>1028</x>
+          <x>1025</x>
           <y>11</y>
-          <width>208</width>
+          <width>251</width>
           <height>287</height>
          </rect>
         </property>
@@ -877,6 +912,9 @@
               <layout class="QGridLayout" name="gridLayout_9">
                <property name="topMargin">
                 <number>0</number>
+               </property>
+               <property name="horizontalSpacing">
+                <number>15</number>
                </property>
                <item row="3" column="0">
                 <widget class="QLabel" name="resolutionyLabel">
@@ -1016,6 +1054,9 @@
            </item>
            <item>
             <widget class="QComboBox" name="LightsComboBox">
+             <property name="currentIndex">
+              <number>1</number>
+             </property>
              <item>
               <property name="text">
                <string>Custom</string>
@@ -1048,7 +1089,7 @@
          <item>
           <widget class="QStackedWidget" name="lightStackedWidget">
            <property name="currentIndex">
-            <number>0</number>
+            <number>1</number>
            </property>
            <widget class="QWidget" name="page_2">
             <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -1139,6 +1180,9 @@
                  <property name="maximum">
                   <number>90</number>
                  </property>
+                 <property name="singleStep">
+                  <number>1</number>
+                 </property>
                  <property name="value">
                   <number>15</number>
                  </property>
@@ -1150,12 +1194,37 @@
                <item row="1" column="0">
                 <widget class="QLabel" name="beamAngleLabel">
                  <property name="text">
-                  <string>Beam Angle</string>
+                  <string>Beam Half Angle</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="3">
+                <widget class="QLabel" name="beamAngleUnitsLabel">
+                 <property name="text">
+                  <string>deg</string>
                  </property>
                 </widget>
                </item>
                <item row="1" column="2">
-                <widget class="QLabel" name="beamAngleValueLabel">
+                <widget class="QLineEdit" name="beamAngleLineEdit">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>40</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>40</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="text">
                   <string>15</string>
                  </property>
@@ -1189,13 +1258,6 @@
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="3">
-                <widget class="QLabel" name="beamAngleUnitsLabel">
-                 <property name="text">
-                  <string>deg</string>
                  </property>
                 </widget>
                </item>
@@ -1306,32 +1368,31 @@
          <string>Scene / Operational Parameters</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
-         <item row="2" column="1">
-          <widget class="QSlider" name="speedSlider">
-           <property name="maximum">
-            <number>400</number>
-           </property>
-           <property name="value">
-            <number>50</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="5">
-          <widget class="QLabel" name="dofLabel">
+         <item row="2" column="3">
+          <widget class="QLabel" name="speedUnitsLabel">
            <property name="text">
-            <string>Depth of Field</string>
+            <string>m/s</string>
            </property>
           </widget>
          </item>
          <item row="1" column="2">
-          <widget class="QLabel" name="overlapValueLabel">
+          <widget class="QLineEdit" name="overlapLineEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimumSize">
             <size>
              <width>40</width>
              <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>30</height>
             </size>
            </property>
            <property name="text">
@@ -1342,26 +1403,30 @@
            </property>
           </widget>
          </item>
+         <item row="1" column="3">
+          <widget class="QLabel" name="overlapUnitsLabel">
+           <property name="text">
+            <string>%</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QSlider" name="speedSlider">
+           <property name="maximum">
+            <number>100</number>
+           </property>
+           <property name="value">
+            <number>10</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
          <item row="2" column="0">
           <widget class="QLabel" name="speedLabel">
            <property name="text">
             <string>Speed</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="altitudeLabel">
-           <property name="minimumSize">
-            <size>
-             <width>40</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>150</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -1389,72 +1454,26 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="3">
-          <widget class="QLabel" name="overlapUnitsLabel">
-           <property name="text">
-            <string>%</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="2">
-          <widget class="QLabel" name="speedValueLabel">
-           <property name="minimumSize">
-            <size>
-             <width>40</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>50</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="3">
-          <widget class="QLabel" name="speedUnitsLabel">
-           <property name="text">
-            <string>cm/s</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="3">
           <widget class="QLabel" name="altitudeUnitsLabel">
            <property name="text">
-            <string>cm</string>
+            <string>m</string>
            </property>
           </widget>
          </item>
          <item row="0" column="1">
           <widget class="QSlider" name="altitudeSlider">
            <property name="maximum">
-            <number>1500</number>
+            <number>100</number>
            </property>
            <property name="singleStep">
             <number>1</number>
            </property>
            <property name="value">
-            <number>150</number>
+            <number>10</number>
            </property>
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="7">
-          <widget class="QLabel" name="dofValueLabel">
-           <property name="minimumSize">
-            <size>
-             <width>25</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>100</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -1481,13 +1500,6 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="8">
-          <widget class="QLabel" name="dofUnitsLabel">
-           <property name="text">
-            <string>cm</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="12">
           <widget class="QComboBox" name="cameraOrientationCombobox">
            <item>
@@ -1504,27 +1516,14 @@
          </item>
          <item row="0" column="6">
           <widget class="QSlider" name="motionBlurSlider">
+           <property name="value">
+            <number>1</number>
+           </property>
            <property name="sliderPosition">
-            <number>2</number>
+            <number>1</number>
            </property>
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="7">
-          <widget class="QLabel" name="motionBlurValueLabel">
-           <property name="minimumSize">
-            <size>
-             <width>25</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>2</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -1558,22 +1557,6 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="6">
-          <widget class="QSlider" name="dofSlider">
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>600</number>
-           </property>
-           <property name="value">
-            <number>100</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
          <item row="2" column="10">
           <widget class="QLabel" name="bottomTypeLabel">
            <property name="text">
@@ -1582,33 +1565,7 @@
           </widget>
          </item>
          <item row="2" column="12">
-          <widget class="QComboBox" name="bottomTypeCombo">
-           <item>
-            <property name="text">
-             <string>Sand</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Custom</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Algae</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Coral</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Rock</string>
-            </property>
-           </item>
-          </widget>
+          <widget class="QComboBox" name="bottomTypeCombo"/>
          </item>
          <item row="1" column="12">
           <widget class="QComboBox" name="viewportCombobox">
@@ -1628,6 +1585,154 @@
           <widget class="QLabel" name="housingLabel">
            <property name="text">
             <string>Housing Viewport Type</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="7">
+          <widget class="QLineEdit" name="motionBlurLineEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>50</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>1</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLineEdit" name="altitudeLineEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>40</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>1.5</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLineEdit" name="speedLineEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>40</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>1.0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="6">
+          <widget class="QSlider" name="chosenApertureSlider">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimum">
+            <number>12</number>
+           </property>
+           <property name="maximum">
+            <number>160</number>
+           </property>
+           <property name="value">
+            <number>20</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="5">
+          <widget class="QLabel" name="chosenApertureLabel">
+           <property name="text">
+            <string>Aperture</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="8">
+          <widget class="QLabel" name="chosenApertureUnitsLabel">
+           <property name="text">
+            <string>f-Number</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="7">
+          <widget class="QLineEdit" name="apertureLineEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>50</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>2.00</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -1659,7 +1764,7 @@
          <enum>Qt::Horizontal</enum>
         </property>
        </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -1787,7 +1892,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1255</width>
+     <width>1284</width>
      <height>22</height>
     </rect>
    </property>
@@ -1874,134 +1979,6 @@
     <hint type="destinationlabel">
      <x>604</x>
      <y>205</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>altitudeSlider</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>altitudeLabel</receiver>
-   <slot>setNum(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>226</x>
-     <y>358</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>383</x>
-     <y>358</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>overlapSlider</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>overlapValueLabel</receiver>
-   <slot>setNum(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>226</x>
-     <y>393</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>383</x>
-     <y>393</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>motionBlurSlider</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>motionBlurValueLabel</receiver>
-   <slot>setNum(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>976</x>
-     <y>358</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1132</x>
-     <y>358</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>speedSlider</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>speedValueLabel</receiver>
-   <slot>setNum(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>225</x>
-     <y>428</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>381</x>
-     <y>428</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>dofSlider</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>dofValueLabel</receiver>
-   <slot>setNum(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>976</x>
-     <y>393</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1132</x>
-     <y>393</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>transmittanceSlider</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>transmittanceValueLabel</receiver>
-   <slot>setNum(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>624</x>
-     <y>172</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>729</x>
-     <y>172</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>focalLengthSlider</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>focalLengthSliderValueLabel</receiver>
-   <slot>setNum(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>624</x>
-     <y>134</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>729</x>
-     <y>134</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>beamAngleSlider</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>beamAngleValueLabel</receiver>
-   <slot>setNum(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>167</x>
-     <y>276</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>234</x>
-     <y>276</y>
     </hint>
    </hints>
   </connection>

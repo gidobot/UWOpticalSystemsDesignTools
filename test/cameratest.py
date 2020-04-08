@@ -131,9 +131,10 @@ class CameraResponseExperiments():
 def main():
     # Set data_dir to data root directory
     #sensor_path = "../cfg/imx250M.json"
-    #data_dir = "BFS-U3-51S5M/VaryingExposureTime/Set1/"
+    # sensor_path = "../cfg/imx250C.json"
+    # data_dir = "BFS-U3-51S5M/Tank/Set1/"
 
-    #data_dir = "BFS-U3-51S5C/VaryingExposureTime/Set1/"
+    # data_dir = "BFS-U3-51S5C/VaryingExposureTime/Set1/"
 
     # data_dir = "BFLY-PGE-50S5C/VaryingExposureTime/Set3/"
 
@@ -157,8 +158,8 @@ def main():
     # # data_dir = "NewTests/BFLY-U3-23S6M/ConstantLight/SpotLight/Set1"
     # data_dir = "NewTests/BFLY-U3-23S6M/ConstantLight/WhiteLight/Set1"
 
-    # sensor_path = "../cfg/imx178.json"
-    # data_dir = "NewTests/BFS-U3-63S4M/ConstantLight/WhiteLight/Set1"
+    sensor_path = "../cfg/imx178.json"
+    data_dir = "NewTests/BFS-U3-63S4M/ConstantLight/WhiteLight/Set1"
 
 
     experiments = CameraResponseExperiments(sensor_path, data_dir)

@@ -26,7 +26,7 @@ class LightSource:
 
     def compute_beam_area(self, working_distance):
         if self.initialized:
-            return np.pi * (np.sin(np.radians(self.beam_angle))*working_distance)**2
+            return np.pi * (np.tan(np.radians(self.beam_angle))*working_distance)**2
         else:
             return 0
 

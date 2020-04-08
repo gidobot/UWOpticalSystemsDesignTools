@@ -9,7 +9,6 @@
   "pixel_size":"2.4",
   "dark_noise":"2.4",
   "gain": "4.34",
-  "gain_inv": "0.23",
   "quantum_efficiency_wavelengths": [
     302.6090,
     307.4343,

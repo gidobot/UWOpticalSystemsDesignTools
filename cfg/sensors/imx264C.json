@@ -8,7 +8,7 @@
   "max_shutter_time":"3900000",
   "min_shutter_time":"13",
   "dark_noise":"17.63",
-  "gain": "0.17",
+  "gain": "5.882",
 "quantum_efficiency_wavelengths": {
     "red": [
         308.0956917499308,
@@ -277,7 +277,7 @@
         1079.5090299863698,
         1088.5111880963198,
         1097.104157201272]},
-  "quantum_efficiency": {
+"quantum_efficiency": {
     "red": [
         0.005522313,
         0.004760307,

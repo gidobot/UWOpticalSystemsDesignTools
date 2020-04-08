@@ -14,19 +14,19 @@ class Sensor:
 
         self.name = None
 
-        self.resolution_x = 0
-        self.resolution_y = 0
+        self.resolution_x = 0.
+        self.resolution_y = 0.
 
-        self.pixel_size = 0  # in micro meters
+        self.pixel_size = 0.  # in micro meters
 
-        self.max_shutter_time = 0 # In micro seconds
-        self.min_shutter_time = 0 # In micro seconds
+        self.max_shutter_time = 0. # In micro seconds
+        self.min_shutter_time = 0. # In micro seconds
 
         self.quantum_efficiency_wav = []
         self.quantum_efficiency = []  # List of tuples with wavelength,quantum_efficiency
 
-        self.dark_noise = 0  # In Electrons
-        self.gain = 0
+        self.dark_noise = 0.  # In Electrons
+        self.gain = 0.
         self.initialized = False
 
     def load(self, file_path):
@@ -53,15 +53,15 @@ class Sensor:
                     self.quantum_efficiency_wav = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]]
                     self.quantum_efficiency = [float(x) for x in sensor_data["quantum_efficiency"]]
                 elif self.mode == 'color':
-                    self.quantum_efficiency_wav = {}
-                    self.quantum_efficiency = {}
-                    self.quantum_efficiency_wav["red"] = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]["red"]]
-                    self.quantum_efficiency_wav["green"] = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]["green"]]
-                    self.quantum_efficiency_wav["blue"] = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]["blue"]]
-                    self.quantum_efficiency["red"] = [float(x) for x in sensor_data["quantum_efficiency"]["red"]]
-                    self.quantum_efficiency["green"] = [float(x) for x in sensor_data["quantum_efficiency"]["green"]]
-                    self.quantum_efficiency["blue"] = [float(x) for x in sensor_data["quantum_efficiency"]["blue"]]
-                    self.quantum_efficiency_wav["mono"], self.quantum_efficiency["mono"] = \
+                    self.quantum_efficiency_wav_color = {}
+                    self.quantum_efficiency_color = {}
+                    self.quantum_efficiency_wav_color["red"] = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]["red"]]
+                    self.quantum_efficiency_wav_color["green"] = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]["green"]]
+                    self.quantum_efficiency_wav_color["blue"] = [float(x) for x in sensor_data["quantum_efficiency_wavelengths"]["blue"]]
+                    self.quantum_efficiency_color["red"] = [float(x) for x in sensor_data["quantum_efficiency"]["red"]]
+                    self.quantum_efficiency_color["green"] = [float(x) for x in sensor_data["quantum_efficiency"]["green"]]
+                    self.quantum_efficiency_color["blue"] = [float(x) for x in sensor_data["quantum_efficiency"]["blue"]]
+                    self.quantum_efficiency_wav, self.quantum_efficiency = \
                         self.compute_combined_color_quantum_efficiency()
                     # fig1, ax1 = plt.subplots()
                     # ax1.plot(self.quantum_efficiency_wav["mono"], self.quantum_efficiency["mono"], '--x')
@@ -85,9 +85,9 @@ class Sensor:
         :return: Sensor diagonal in mm
         """
         sensor_diagonal = math.sqrt(self.get_sensor_size('x')**2 + self.get_sensor_size('y')**2)
-        sensor_diagonal /= 1000  # Convert to mm
+        sensor_diagonal /= 1000.  # Convert to mm
 
-        coc = sensor_diagonal / 1500
+        coc = sensor_diagonal / 1500.   # common value for 35mm format
         return coc
 
     def get_quantum_efficiency(self, wave_length):
@@ -96,10 +96,7 @@ class Sensor:
         :param wave_length: Input wavelength
         :return:
         """
-        if self.mode == 'mono':
-            return np.interp(wave_length, self.quantum_efficiency_wav, self.quantum_efficiency)
-        elif self.mode == 'color':
-            return np.interp(wave_length, self.quantum_efficiency_wav["mono"], self.quantum_efficiency["mono"])
+        return np.interp(wave_length, self.quantum_efficiency_wav, self.quantum_efficiency)
 
     def compute_combined_color_quantum_efficiency(self):
         """
@@ -114,11 +111,11 @@ class Sensor:
         return: Wavelengths for combined mono response,
                 Combined quantum efficiency for mono response
         """
-        mono_wav = np.array(self.quantum_efficiency_wav["green"], dtype=float)
-        red = np.array([np.interp(x, self.quantum_efficiency_wav["red"], self.quantum_efficiency["red"]) for x in mono_wav], dtype=float)
-        green = np.array(self.quantum_efficiency["green"], dtype=float)
-        blue = np.array([np.interp(x, self.quantum_efficiency_wav["blue"], self.quantum_efficiency["blue"]) for x in mono_wav], dtype=float)
-        mono_eff = (2*green + red + blue)/4
+        mono_wav = np.array(self.quantum_efficiency_wav_color["green"], dtype=float)
+        red = np.array([np.interp(x, self.quantum_efficiency_wav_color["red"], self.quantum_efficiency_color["red"]) for x in mono_wav], dtype=float)
+        green = np.array(self.quantum_efficiency_color["green"], dtype=float)
+        blue = np.array([np.interp(x, self.quantum_efficiency_wav_color["blue"], self.quantum_efficiency_color["blue"]) for x in mono_wav], dtype=float)
+        mono_eff = (2.*green + red + blue)/4.
         return mono_wav, mono_eff
 
     def compute_incident_photons(self, wavelength, exposure_time, irradiance):
@@ -272,14 +269,14 @@ class Sensor:
         Compute the acceptable size for the circle of confusion based on sensor size. Approximation
         :return: Circle of confusion size in mm
         """
-        sensor_diag = np.sqrt( self.get_sensor_size('x')**2 + self.get_sensor_size('y')**2) / 1000
-        coc = sensor_diag / 1500
+        sensor_diag = np.sqrt( self.get_sensor_size('x')**2 + self.get_sensor_size('y')**2) / 1000.
+        coc = sensor_diag / 1500.
         return coc
 
 class Lens:
     def __init__(self):
         self.name = None
-        self.focal_length = 0  # In [mm]
+        self.focal_length = 0.  # In [mm]
         self.transmittance_wav = []
         self.transmittance = []  # Tuples of wavelength and transmittance (nm, %1)
 
@@ -358,7 +355,7 @@ class Lens:
             logger.error("Transmittance value of %f bigger then 1", t)
             return False
         self.transmittance_wav = range(400, 1001, 50)
-        self.transmittance = [t] * 13
+        self.transmittance = [t] * len(self.transmittance_wav)
         self.initialized = True
         return True
 
@@ -418,7 +415,7 @@ class Camera:
         :param axis: Either x or y
         :return: FOV in radians
         """
-        fov = 2 * np.arctan2(self.sensor.get_sensor_size(axis)/1000, 2*self.effective_focal_length)
+        fov = 2. * np.arctan2(self.sensor.get_sensor_size(axis)/1000., 2.*self.effective_focal_length)
         logger.debug("Angular FOV: %f", fov)
         return fov
 
@@ -430,7 +427,7 @@ class Camera:
         :return: size of the area covered by the image along the given axis in the same units as working distance
         """
         if self.initialized():
-            fov = 2 * working_distance * np.tan(self.get_angular_fov(axis)/2)
+            fov = 2. * working_distance * np.tan(self.get_angular_fov(axis)/2.)
             return fov
         else:
             logger.error("Tried to cpmpute camera FOV without initializing sensor or lens")
@@ -455,9 +452,20 @@ class Camera:
 
     def compute_depth_of_field(self, lens_aperture, focus_distance):
         f = self.effective_focal_length
-        c = self.sensor.get_circle_of_confusion()
-        dof = (2*lens_aperture*c*focus_distance**2) / (f**2)
-        return dof
+        c = self.sensor.get_coc()
+        S = focus_distance * 1000.
+        m = f/S
+        N = lens_aperture
+        # Resource: http://www.dofmaster.com/equations.html
+        H = f**2/(N*c) + focus_distance # Hyperfocal distance
+        dn = S*(H-f)/(H+S-2*f)          # Near distance of acceptable sharpness 
+        if (H-S)/(S*(H-f)) < 1.E-6:     # Check inverse first for infinity
+            df = 1.E6
+        else:
+            df = S*(H-f)/(H-S)              # Far distance of acceptable sharpness
+        # dof = (2.*lens_aperture*c*focus_distance**2) / (f**2)
+        # dof = (2.*N*c*(m+1)) / (m**2 - (N*c/f)**2)
+        return (dn/1000., df/1000.)     # Return in m
 
     def compute_aperture(self, dof, working_distance):
         """
@@ -469,8 +477,8 @@ class Camera:
         """
         logger.debug("Computing aperture")
         coc = self.sensor.get_coc()
-        df = (working_distance + dof/2) * 1000  # Convert to mm
-        dn = (working_distance - dof/2) * 1000  # Convert to mm
+        df = (working_distance + dof/2.) * 1000.  # Convert to mm
+        dn = (working_distance - dof/2.) * 1000.  # Convert to mm
         f = self.effective_focal_length
 
         N = (f**2/coc)*((df-dn)/(df*(dn-f) + dn*(df-f)))
@@ -495,18 +503,19 @@ class Camera:
 
 
 
-
-
 class OperationalParameters:
     def __init__(self):
-        self.altitude = None
-        self.overlap = None
-        self.speed = None
-        self.motion_blur = None
-        self.depthoffield = None
-        self.bottom_type = None
+        self.altitude = 1.
+        self.overlap = 0.25
+        self.speed = 0.
+        self.motion_blur = 1.
+        self.depthoffield = (0., 0.)
+        self.bottom_type = 'Benthic Average'
 
         self.axis = 'x'
+
+        # Bottom type reflection coarsley estimated from http://www.ioccg.org/training/SLS-2016/Dierssen_IOCCG_Lecture1_webLO.pdf
+        self.bottom_type_dict = {'Benthic Average': 0.2, 'Sand': 0.35, 'Hard': 0.3, 'Coral': 0.15, 'Organic': 0.1}
 
     def initialize(self, alt, ovr, spe, mot, dep, bot):
         self.altitude = alt
@@ -514,7 +523,16 @@ class OperationalParameters:
         self.speed = spe
         self.motion_blur = mot
         self.depthoffield = dep
-        self.bottom_type = bot
+        self.bottom_type = self.set_bottom_type(bot)
+
+    def set_bottom_type(self, bot):
+        if bot in self.bottom_type_dict.keys():
+            self.bottom_type = bot
+        else:
+            self.bottom_type = 'Benthic Average'
+
+    def get_reflectance(self):
+        return self.bottom_type_dict[self.bottom_type]
 
 
 class Reflectance:
