@@ -47,6 +47,9 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
 
         for key in self.model.scene.bottom_type_dict:
             self.bottomTypeCombo.addItem(key)
+        index = self.bottomTypeCombo.findText('Benthic Average')
+        if index >= 0:
+            self.bottomTypeCombo.setCurrentIndex(index)
 
         sensor_file_list = glob.glob("../cfg/sensors/*.json")
         self.sensor_dict = {}
