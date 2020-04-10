@@ -36,7 +36,7 @@ qtcreator-*
 CATKIN_IGNORE
  
 # custom data files
-*.png
+#*.png
 *.pkl
 data_plots/*
  

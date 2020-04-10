@@ -1,10 +1,11 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 from camera import Camera,  OperationalParameters
 from lights import LightSource
 from wateratenuationmodel import WaterPropagation
 from plotWindows import GraphWindow, PlotWidget
-
 import mainwindow
+
 import sys
 import os
 import logging
