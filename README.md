@@ -8,6 +8,8 @@ The tool encorporates modelng of the source lighting spectrum, physical modeling
 From src folder, launch tool GUI as  
 `python main.py`
 
+![alt text](resources/interface.png)
+
 ## Python Dependencies: 
 Pyqt5
 SIP
