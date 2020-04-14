@@ -1,8 +1,0 @@
-Lens: 30mm @ aperature 2.0
-
-Exposure reduction from no lens = 60%
-
-42401 w/o lens
-16281 w/ lens @ F/2
-8916 w/ lens @ F/2.8
-4949 w/ lens @ F/4
