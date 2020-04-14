@@ -5,9 +5,10 @@ The tool encorporates modelng of the source lighting spectrum, physical modeling
 
 # Tool Use
 
-From src folder, launch tool GUI as  
+From src folder, launch GUI as  
 `python main.py`
 
+Example image of the user interface
 ![alt text](resources/interface.png)
 
 ## Python Dependencies: 
