@@ -19,24 +19,24 @@ The interface is divided into three sections: where the top section is hardware 
 
 #### Lights
 
-Currently the software only supports a generic LED spectrum as the light source, though other sources are included as menu options.
+Currently the software only supports a generic LED spectrum as the light source, though other sources are included as menu options for future implementation.
 
 #### Underwater Attenuation
 
-This option sets the type of water in which the imaging system is expected to operate, based on the Jerlov classification scale. The poorest expected water type should be selected here for system design. More information about the Jerlov classification scheme can be found here  
+This option defines the type of water in which the imaging system is expected to operate, based on the Jerlov classification scale. The poorest expected water type should be selected here for system design considerations. More information about the Jerlov classification scheme can be found here  
 http://www.oceanopticsbook.info/view/overview_of_optical_oceanography/classification_schemes
 
 #### Lens
 
-Though custom lens specification files may be provided, the generic lens profile is generally good enough for most optics used in the field. Lens transmittance efficency is generally 80-90%.
+Though a custom lens configuration file may be provided, the generic lens profile is generally good enough for most optics used in the field. Lens transmittance efficency is generally 80-90%.
 
 #### Camera
 
-A dropdown menu of common machine vision sensors are provided. The tool makes it easy to compare different imaging sensors. The selection menu is auto-populated by the configuration files found in the cfg/sensors folder. New sensor configuration files may be added to this folder and will appear in the menu. Also, configuration files can be loaded from custom locations in the interface.
+A dropdown menu of common machine vision sensors are provided. The tool makes it easy to compare different imaging sensors. The selection menu is auto-populated by the configuration files found in the cfg/sensors folder. New sensor configuration files may be added to this folder and will appear in the menu. Also, configuration files can be loaded from custom locations in the interface. Our convention is that sensor names ending in M are monochrome and those that end in C are color sensors.
 
 #### Altitude
 
-Target height-from-bottom at which imaging system will operate, or the expected working distance to imaging subject.
+Target height-from-bottom at which imaging system will operate, or the expected working distance to the imaging subject.
 
 #### Overlap
 
