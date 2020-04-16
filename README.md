@@ -9,7 +9,7 @@ SIP
 
 ## Citation  
 
-See our associated [**[arxiv]**](https://arxiv.org/abs/2004.06763) publication for detailed information about the light propogation model and implementation. If you use this tool for research, we request that you cite the following work
+See our associated [**arxiv**](https://arxiv.org/abs/2004.06763) publication for detailed information about the light propogation model and implementation. If you use this tool for research, we request that you cite the following work
 
 ```
 @article{{billings2020parametric,
