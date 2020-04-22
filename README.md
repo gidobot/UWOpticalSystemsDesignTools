@@ -1,4 +1,4 @@
-# Underwater Optical System Design Tool
+# Parametric Design of Underwater Optical Systems
 This tool acts as a simple "back of the envelope" calculator to guide camera and lighting design choices in an underwater camera system. The tool is designed with imaging survey platforms in mind, such as a diver operated rig or an AUV with downward facing camera and strobes. Some features of the tool are not yet fully implemented or are planned for the future, but the tool is functional for the intended design application in this current release.
 
 The tool incorporates modeling of the source lighting spectrum, physical modeling of spectrum dependent light propagation through different water bodies, lensing effects, and manufacturer specified camera sensor response functions to provide realistic estimates of imaging performance, based on a set of input operational parameters.
