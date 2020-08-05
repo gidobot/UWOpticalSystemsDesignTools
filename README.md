@@ -107,3 +107,8 @@ The minimum framerate is calcualted based on the speed of the imaging system and
 To modify and generate the UI use Qt Creator. 
 Changes to the UI file have to be converted to python with: 
 ```pyuic5 qt/UWOpticalSystemDesigner/mainwindow.ui -o src/mainwindow.py```
+
+## ToDo
+
+* Fully implement dome viewport
+* Add gain parameter with signal to noise ratio output
