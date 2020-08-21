@@ -14,13 +14,13 @@ class Sensor:
 
         self.name = None
 
-        self.resolution_x = 0.
-        self.resolution_y = 0.
+        self.resolution_x = 1000.
+        self.resolution_y = 1000.
 
-        self.pixel_size = 0.  # in micro meters
+        self.pixel_size = 3.45  # in micro meters
 
-        self.max_shutter_time = 0. # In micro seconds
-        self.min_shutter_time = 0. # In micro seconds
+        self.max_shutter_time = 2000000. # In micro seconds
+        self.min_shutter_time = 20. # In micro seconds
 
         self.quantum_efficiency_wav = []
         self.quantum_efficiency = []  # List of tuples with wavelength,quantum_efficiency
@@ -276,7 +276,7 @@ class Sensor:
 class Lens:
     def __init__(self):
         self.name = None
-        self.focal_length = 0.  # In [mm]
+        self.focal_length = 8.  # In [mm]
         self.transmittance_wav = []
         self.transmittance = []  # Tuples of wavelength and transmittance (nm, %1)
 
@@ -373,6 +373,9 @@ class Camera:
 
         self.housing = 'flat'
 
+        self.dome_radius = 0.2
+        self.dome_thickness = 0.02
+
         self.vectorized_dof = np.vectorize(self.compute_depth_of_field, excluded='self')
         self.vectorized_framerate = np.vectorize(self.compute_framerate, excluded=['self', 'axis', 'overlap'])
         self.vectorized_exposure = np.vectorize(self.max_blur_shutter_time, excluded=['self', 'axis', 'blur'])
@@ -450,22 +453,106 @@ class Camera:
         max_shutter_time = blur/pixel_speed
         return max_shutter_time
 
-    def compute_depth_of_field(self, lens_aperture, focus_distance):
+    def get_depth_of_field(self, lens_aperture, working_distance):
+        if self.housing == 'flat':
+            return self.compute_depth_of_field(lens_aperture, working_distance)
+        else: # self.housing == 'dome':
+            return self.dome_compute_depth_of_field(lens_aperture, working_distance)
+
+    def compute_depth_of_field(self, lens_aperture, working_distance):
         f = self.effective_focal_length
         c = self.sensor.get_coc()
-        S = focus_distance * 1000.
+        S = working_distance * 1000.
         m = f/S
         N = lens_aperture
         # Resource: http://www.dofmaster.com/equations.html
-        H = f**2/(N*c) + focus_distance # Hyperfocal distance
+        H = f**2/(N*c) + working_distance # Hyperfocal distance
         dn = S*(H-f)/(H+S-2*f)          # Near distance of acceptable sharpness 
         if (H-S)/(S*(H-f)) < 1.E-6:     # Check inverse first for infinity
             df = 1.E6
         else:
             df = S*(H-f)/(H-S)              # Far distance of acceptable sharpness
-        # dof = (2.*lens_aperture*c*focus_distance**2) / (f**2)
+        # dof = (2.*lens_aperture*c*working_distance**2) / (f**2)
         # dof = (2.*N*c*(m+1)) / (m**2 - (N*c/f)**2)
         return (dn/1000., df/1000.)     # Return in m
+
+    def dome_compute_depth_of_field(self, lens_aperture, working_distance):
+        # compute camera focus distance for virtual image
+        focus_distance = self.dome_world_to_virtual_dist(working_distance)
+        (dn_v, df_v) = self.compute_depth_of_field(lens_aperture, focus_distance)
+        dn = self.dome_virtual_to_world_dist(dn_v)
+        df = self.dome_virtual_to_world_dist(df_v)
+        return (dn, df)
+
+
+    def dome_world_to_virtual_dist(self, dist, nd=1.49):
+        # nd = index of refraction of dome
+        d = self.dome_thickness #assume concentric dome
+        r1 = self.dome_radius   #external dome radius
+        r2 = r1 - d             #internal dome radius
+        na = 1.0                #index of refraction of air
+        nw = 1.33               #index of refraction of water
+        p  = dist               #p=object distance relative to external vertex                   
+
+        f1     = nw*(r1/(nd-nw))        #primary focal length of dome's external surface
+        f1p    = f1*nd/nw               #secondary focal length of dome's external surface
+        f2p    = nd*(r2/(na-nd))        #primary focal length of dome's internal surface
+        f2pp   = f2p*na/nd              #secondary focal length of dome's internal surface
+        enovrf = nd/f1p + na/f2pp - (d/f1p)*(na/f2pp)
+        f      = nw/enovrf              #primary focal length of the dome
+        fpp    = f*na/nw                #secondary focal length of the dome
+        a1f    = -f*(1.-d/f2p)          #position of the dome's primary focal plane relative
+                                        #to the dome's external vertex (on the dome axis)
+        a2fpp  = fpp*(1.-d/f1p)         #position of the dome's secondary focal plane relative
+                                        #to the dome's internal vertex (on the dome axis)
+        a1h    = f*d/f2p                #position of the dome's primary principal plane relative
+                                        #to the dome's external vertex (on the dome axis)
+        g      = r1 - a1h               #g=distance from dome principal plane to lens primary
+                                        #principal plane. We assume lens primary principal plane
+                                        #at center of dome curvature
+        a2hpp  = -fpp*d/f1p             #position of the dome's secondary principal plane relative
+                                        #to the dome's internal vertex (on the dome axis)
+        s      = p+a1h                  #s=object distance relative to primary principal plane
+        spp    = na/(nw/f - nw/s)       #image distance relative to secondary principal plane
+        ppp    = spp+a2hpp+d            #image distance relative to external vertex
+        # m      = -(nw/na)*(spp/s)       #size of image relative to size of object
+        # view   = -(spp-g)/(s+g)/m       #view=tangent of lens' effective half-angle of view
+                                        #divided by tangent of lens' in-air half-angle
+                                        # of view
+        return -ppp
+
+    def dome_virtual_to_world_dist(self, dist, nd=1.49):
+        # nd = index of refraction of dome
+        d = self.dome_thickness #assume concentric dome
+        r1 = self.dome_radius   #external dome radius
+        r2 = r1 - d             #internal dome radius
+        na = 1.0                #index of refraction of air
+        nw = 1.33               #index of refraction of water
+        ppp = -dist              #ppp=virtual distance relative to external vertex                   
+
+        f1     = nw*(r1/(nd-nw))        #primary focal length of dome's external surface
+        f1p    = f1*nd/nw               #secondary focal length of dome's external surface
+        f2p    = nd*(r2/(na-nd))        #primary focal length of dome's internal surface
+        f2pp   = f2p*na/nd              #secondary focal length of dome's internal surface
+        enovrf = nd/f1p + na/f2pp - (d/f1p)*(na/f2pp)
+        f      = nw/enovrf              #primary focal length of the dome
+        fpp    = f*na/nw                #secondary focal length of the dome
+        a1f    = -f*(1.-d/f2p)          #position of the dome's primary focal plane relative
+                                        #to the dome's external vertex (on the dome axis)
+        a2fpp  = fpp*(1.-d/f1p)         #position of the dome's secondary focal plane relative
+                                        #to the dome's internal vertex (on the dome axis)
+        a1h    = f*d/f2p                #position of the dome's primary principal plane relative
+                                        #to the dome's external vertex (on the dome axis)
+        g      = r1 - a1h               #g=distance from dome principal plane to lens primary
+                                        #principal plane. We assume lens primary principal plane
+                                        #at center of dome curvature
+        a2hpp  = -fpp*d/f1p             #position of the dome's secondary principal plane relative
+                                        #to the dome's internal vertex (on the dome axis)
+        spp    = ppp-a2hpp-d            #image distance relative to secondary principal plane
+        s      = 1/(1/f - na/(spp*nw))  #object distance relative to primary principal plane
+        p      = s-a1h                  #object distance relative to dome's external vertex
+
+        return p
 
     def compute_aperture(self, dof, working_distance):
         """
@@ -543,3 +630,11 @@ class Reflectance:
     def load(self):
         pass
 
+def test():
+    camera = Camera()
+    camera.set_housing('domed')
+    camera.lens.init_generic_lens(8., 0.9)
+    camera.get_depth_of_field(2.0, 1.0)
+
+if __name__=="__main__":
+    test()

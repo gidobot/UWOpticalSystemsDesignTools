@@ -45,6 +45,8 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         self.on_orientation_combobox(self.cameraOrientationCombobox.currentIndex())
         self.on_lens_combobox(self.LensComboBox.currentIndex())
         self.on_light_combobox(self.LightsComboBox.currentIndex())
+        self.on_dome_radius_change()
+        self.on_dome_thickness_change()
 
         for key in self.model.scene.bottom_type_dict:
             self.bottomTypeCombo.addItem(key)
@@ -58,6 +60,14 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
             name = os.path.splitext(os.path.split(file)[1])[0]
             self.sensor_dict[name] = file
             self.cameraComboBox.addItem(name)
+
+        # default is flat viewport
+        self.domeRadiusLabel.hide()
+        self.domeRadiusLineEdit.hide()
+        self.domeRadiusUnitsLabel.hide()
+        self.domeThicknessLabel.hide()
+        self.domeThicknessLineEdit.hide()
+        self.domeThicknessUnitsLabel.hide()
 
     def connections(self):
         """
@@ -113,6 +123,10 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         self.apertureLineEdit.editingFinished.connect(self.on_aperture_change)
         self.chosenExposureSlider.valueChanged.connect(self.on_exposure_slider)
         self.chosenExposureLineEdit.editingFinished.connect(self.on_exposure_change)
+
+        # Dome housing connections
+        self.domeRadiusLineEdit.editingFinished.connect(self.on_dome_radius_change)
+        self.domeThicknessLineEdit.editingFinished.connect(self.on_dome_thickness_change)
 
         # Plots Buttons
         self.dofPlot.clicked.connect(self.model.plotdof)
@@ -305,6 +319,20 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         except Exception as e:
             self.beamAngleLineEdit.setText(("%i" % self.beamAngleSlider.value()))
 
+    def on_dome_radius_change(self):
+        try:
+            self.model.camera.dome_radius = float(self.domeRadiusLineEdit.text())/100.
+        except Exception as e:
+            self.domeRadiusLineEdit.setText(("%.1f" % (self.model.camera.dome_radius*100.)))
+        self.updateModel()
+
+    def on_dome_thickness_change(self):
+        try:
+            self.model.camera.dome_thickness = float(self.domeThicknessLineEdit.text())/100.
+        except Exception as e:
+            self.domeThicknessLineEdit.setText(("%.1f" % (self.model.camera.dome_thickness*100.)))
+        self.updateModel()
+
     def on_altitude_slider(self):
         self.model.scene.altitude = float(self.altitudeSlider.value())/10.
         self.altitudeLineEdit.setText(("%.1f" % self.model.scene.altitude))
@@ -369,8 +397,20 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
     def on_housing_combobox(self, index):
         if index == 0:
             self.model.camera.set_housing('flat')
+            self.domeRadiusLabel.hide()
+            self.domeRadiusLineEdit.hide()
+            self.domeRadiusUnitsLabel.hide()
+            self.domeThicknessLabel.hide()
+            self.domeThicknessLineEdit.hide()
+            self.domeThicknessUnitsLabel.hide()
         elif index == 1:
             self.model.camera.set_housing('domed')
+            self.domeRadiusLabel.show()
+            self.domeRadiusLineEdit.show()
+            self.domeRadiusUnitsLabel.show()
+            self.domeThicknessLabel.show()
+            self.domeThicknessLineEdit.show()
+            self.domeThicknessUnitsLabel.show()
         else:
             logging.error("Invalid housing option in callback")
         self.updateModel()
@@ -467,7 +507,7 @@ class Model:
                                                               self.scene.speed, self.scene.motion_blur)
             self.framerate = self.camera.compute_framerate(self.scene.axis, self.scene.altitude,
                                                            self.scene.speed, self.scene.overlap)
-            self.scene.depthoffield = self.camera.compute_depth_of_field(self.aperture, self.scene.altitude)
+            self.scene.depthoffield = self.camera.get_depth_of_field(self.aperture, self.scene.altitude)
 
         else:
             self.fov_y = 0.
