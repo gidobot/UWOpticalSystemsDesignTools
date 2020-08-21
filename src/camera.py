@@ -491,6 +491,7 @@ class Camera:
         (dn_v, df_v) = self.compute_depth_of_field(lens_aperture, focus_distance)
         dn = self.dome_virtual_to_world_dist(dn_v)
         df = self.dome_virtual_to_world_dist(df_v)
+
         return (dn, df)
 
 
@@ -558,6 +559,8 @@ class Camera:
         a2hpp  = -fpp*d/f1p             #position of the dome's secondary principal plane relative
                                         #to the dome's internal vertex (on the dome axis)
         spp    = ppp-a2hpp-d            #image distance relative to secondary principal plane
+        if ((1/f - na/(spp*nw)) < 1E-3):
+            return 1000.
         s      = 1/(1/f - na/(spp*nw))  #object distance relative to primary principal plane
         p      = s-a1h                  #object distance relative to dome's external vertex
 

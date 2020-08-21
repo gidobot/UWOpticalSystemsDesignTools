@@ -68,6 +68,9 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         self.domeThicknessLabel.hide()
         self.domeThicknessLineEdit.hide()
         self.domeThicknessUnitsLabel.hide()
+        self.domeDistanceLabel.hide()
+        self.domeDistanceValueLabel.hide()
+        self.domeDistanceUnitsLabel.hide()
 
     def connections(self):
         """
@@ -407,6 +410,9 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
             self.domeThicknessLabel.hide()
             self.domeThicknessLineEdit.hide()
             self.domeThicknessUnitsLabel.hide()
+            self.domeDistanceLabel.hide()
+            self.domeDistanceValueLabel.hide()
+            self.domeDistanceUnitsLabel.hide()
         elif index == 1:
             self.model.camera.set_housing('domed')
             self.domeRadiusLabel.show()
@@ -415,6 +421,9 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
             self.domeThicknessLabel.show()
             self.domeThicknessLineEdit.show()
             self.domeThicknessUnitsLabel.show()
+            self.domeDistanceLabel.show()
+            self.domeDistanceValueLabel.show()
+            self.domeDistanceUnitsLabel.show()
         else:
             logging.error("Invalid housing option in callback")
         self.updateModel()
@@ -490,6 +499,7 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
             self.chosenExposureLineEdit.setText("%.2f" % (self.model.max_exposure*1000.))
             self.update_exposure_slider()
         self.snrValueLabel.setText(("%.2f" % self.model.snr))
+        self.domeDistanceValueLabel.setText(("%.2f" % self.model.dome_virtual_distance))
 
 class Model:
     def __init__(self):
@@ -509,6 +519,7 @@ class Model:
         self.eff_focal_length = 0.
         self.response = 0.
         self.snr = 0.
+        self.dome_virtual_distance = 0.
 
     def update(self):
         logging.info("Updating model")
@@ -527,6 +538,7 @@ class Model:
             self.framerate = self.camera.compute_framerate(self.scene.axis, self.scene.altitude,
                                                            self.scene.speed, self.scene.overlap)
             self.scene.depthoffield = self.camera.get_depth_of_field(self.aperture, self.scene.altitude)
+            self.dome_virtual_distance = 100.*self.camera.dome_world_to_virtual_dist((self.scene.altitude))
 
         else:
             self.fov_y = 0.
