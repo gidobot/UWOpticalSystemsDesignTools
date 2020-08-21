@@ -28,6 +28,7 @@ class Sensor:
         self.dark_noise = 0.  # In Electrons
         self.gain = 0.
         self.initialized = False
+        self.user_gain = 1.
 
     def load(self, file_path):
         """
@@ -147,17 +148,25 @@ class Sensor:
         absorbed_photons = quantum_efficiency * self.compute_incident_photons(wavelength, exposure_time, irradiance)
         return absorbed_photons
 
+    def compute_signal_to_noise_ratio(self, exposure_time, wavelengths, incident_spectrum):
+        u_a = self.compute_absorbed_photons_broadband(wavelengths, incident_spectrum, exposure_time)
+        sq_2 = 1/12 # assumes 12bit ADC for machine vision cameras
+        sd_2 = self.dark_noise**2
+        k = self.user_gain*self.gain
+        k_2 = k**2
+        snr = u_a/math.sqrt(sd_2 + sq_2/k_2 + u_a)
+        return snr
+
     def compute_digital_signal(self, exposure_time, wavelength, irradiance):
         """
         Compute the digital signal value
-        :param Gain: Overall system gain in DN/e- (digits per electron)
         :param wavelength:  wavelength of incident light in [um]
         :param exposure_time: image shutter time in [ms]
         :param irradiance: Incident Radiance E on sensor surface in [uW/cm^2]
         :return: Mean digital signal
         """
-        print("Compute dig signal narrowband")
-        signal = self.gain*(self.dark_noise+self.compute_absorbed_photons(wavelength, exposure_time, irradiance))
+        print("Compute digital signal narrowband")
+        signal = self.user_gain*self.gain*(self.dark_noise+self.compute_absorbed_photons(wavelength, exposure_time, irradiance))
         return signal
 
     def compute_absorbed_photons_broadband(self, wavelengths, incident_spectrum, exposure_time):
@@ -228,7 +237,7 @@ class Sensor:
         """
         photons = self.compute_absorbed_photons_broadband(wavelengths, incident_spectrum, exposure_time)
         print("Gain: {}, Dark Noise: {}".format(self.gain,self.dark_noise))
-        signal = self.gain * (self.dark_noise+photons)
+        signal = self.user_gain*self.gain * (self.dark_noise+photons)
         return signal
 
     def get_sensor_size(self, axis):

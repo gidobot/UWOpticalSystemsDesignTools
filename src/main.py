@@ -124,6 +124,10 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         self.chosenExposureSlider.valueChanged.connect(self.on_exposure_slider)
         self.chosenExposureLineEdit.editingFinished.connect(self.on_exposure_change)
 
+        # Gain connections
+        self.gainSlider.valueChanged.connect(self.on_gain_slider)
+        self.gainLineEdit.editingFinished.connect(self.on_gain_change)
+
         # Dome housing connections
         self.domeRadiusLineEdit.editingFinished.connect(self.on_dome_radius_change)
         self.domeThicknessLineEdit.editingFinished.connect(self.on_dome_thickness_change)
@@ -432,6 +436,19 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         except Exception as e:
             self.apertureLineEdit.setText("%.1f" % (float(self.chosenApertureSlider.value())/10.))
 
+    def on_gain_slider(self):
+        self.model.camera.sensor.user_gain = float(self.gainSlider.value()) / 10.
+        self.gainLineEdit.setText("%.1f" % self.model.camera.sensor.user_gain)
+        logging.info("Modified gain to %.1f.", self.model.camera.sensor.user_gain)
+        self.updateModel()
+
+    def on_gain_change(self):
+        try:
+            self.gainSlider.setValue(float(self.gainLineEdit.text())*10)
+            self.on_gain_slider()
+        except Exception as e:
+            self.gainLineEdit.setText("%.1f" % (float(self.gainSlider.value())/10.))
+
     def on_exposure_slider(self):
         exposure = float(self.chosenExposureSlider.value())/1000000.
         if exposure > self.model.max_exposure:
@@ -472,6 +489,7 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         if float(self.chosenExposureLineEdit.text())/1000. > self.model.max_exposure:
             self.chosenExposureLineEdit.setText("%.2f" % (self.model.max_exposure*1000.))
             self.update_exposure_slider()
+        self.snrValueLabel.setText(("%.2f" % self.model.snr))
 
 class Model:
     def __init__(self):
@@ -490,6 +508,7 @@ class Model:
         self.framerate = 0.
         self.eff_focal_length = 0.
         self.response = 0.
+        self.snr = 0.
 
     def update(self):
         logging.info("Updating model")
@@ -536,6 +555,7 @@ class Model:
             self.response = (self.camera.sensor.compute_digital_signal_broadband(self.exposure,
                                                                                 lights_wavelength,
                                                                                 incident_spectrum)/2**16)*100
+            self.snr = self.camera.sensor.compute_signal_to_noise_ratio(self.exposure, lights_wavelength, incident_spectrum)
 
 
     def plotframerate(self):
