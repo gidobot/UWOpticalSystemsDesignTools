@@ -382,10 +382,12 @@ class Camera:
 
         self.housing = 'flat'
 
-        self.dome_radius = 0.2
-        self.dome_thickness = 0.02
+        self.port_refraction_idx = 1.5
 
-        self.vectorized_dof = np.vectorize(self.compute_depth_of_field, excluded='self')
+        self.dome_radius = 0.1
+        self.dome_thickness = 0.01
+
+        self.vectorized_dof = np.vectorize(self.get_depth_of_field_width, excluded='self')
         self.vectorized_framerate = np.vectorize(self.compute_framerate, excluded=['self', 'axis', 'overlap'])
         self.vectorized_exposure = np.vectorize(self.max_blur_shutter_time, excluded=['self', 'axis', 'blur'])
 
@@ -468,6 +470,10 @@ class Camera:
         else: # self.housing == 'dome':
             return self.dome_compute_depth_of_field(lens_aperture, working_distance)
 
+    def get_depth_of_field_width(self, lens_aperture, working_distance):
+        (n, f) = self.get_depth_of_field(lens_aperture, working_distance)
+        return f-n
+
     def compute_depth_of_field(self, lens_aperture, working_distance):
         f = self.effective_focal_length
         c = self.sensor.get_coc()
@@ -495,14 +501,15 @@ class Camera:
         return (dn, df)
 
 
-    def dome_world_to_virtual_dist(self, dist, nd=1.49):
+    def dome_world_to_virtual_dist(self, dist):
         # nd = index of refraction of dome
-        d = self.dome_thickness #assume concentric dome
-        r1 = self.dome_radius   #external dome radius
-        r2 = r1 - d             #internal dome radius
-        na = 1.0                #index of refraction of air
-        nw = 1.33               #index of refraction of water
-        p  = dist               #p=object distance relative to external vertex                   
+        nd = self.port_refraction_idx #index of refraction of port
+        d  = self.dome_thickness #assume concentric dome
+        r1 = self.dome_radius    #external dome radius 
+        r2 = r1 - d              #internal dome radius
+        na = 1.0                 #index of refraction of air
+        nw = 1.33                #index of refraction of water
+        p  = dist                #p=object distance relative to external vertex                   
 
         f1     = nw*(r1/(nd-nw))        #primary focal length of dome's external surface
         f1p    = f1*nd/nw               #secondary focal length of dome's external surface
@@ -531,14 +538,15 @@ class Camera:
                                         # of view
         return -ppp
 
-    def dome_virtual_to_world_dist(self, dist, nd=1.49):
+    def dome_virtual_to_world_dist(self, dist):
         # nd = index of refraction of dome
-        d = self.dome_thickness #assume concentric dome
-        r1 = self.dome_radius   #external dome radius
-        r2 = r1 - d             #internal dome radius
-        na = 1.0                #index of refraction of air
-        nw = 1.33               #index of refraction of water
-        ppp = -dist              #ppp=virtual distance relative to external vertex                   
+        nd  = self.port_refraction_idx #index of refraction of port
+        d   = self.dome_thickness #assume concentric dome
+        r1  = self.dome_radius    #external dome radius
+        r2  = r1 - d              #internal dome radius
+        na  = 1.0                 #index of refraction of air
+        nw  = 1.33                #index of refraction of water
+        ppp = -dist               #ppp=virtual distance relative to external vertex                   
 
         f1     = nw*(r1/(nd-nw))        #primary focal length of dome's external surface
         f1p    = f1*nd/nw               #secondary focal length of dome's external surface

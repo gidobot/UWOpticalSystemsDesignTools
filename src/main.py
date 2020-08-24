@@ -135,10 +135,21 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         self.domeRadiusLineEdit.editingFinished.connect(self.on_dome_radius_change)
         self.domeThicknessLineEdit.editingFinished.connect(self.on_dome_thickness_change)
 
+        # Port refractive index connection
+        self.refractionLineEdit.editingFinished.connect(self.on_refractive_change)
+
         # Plots Buttons
         self.dofPlot.clicked.connect(self.model.plotdof)
         self.frameratePlot.clicked.connect(self.model.plotframerate)
         self.exposurePlot.clicked.connect(self.model.plotmaxexp)
+
+    def on_refractive_change(self):
+        try:
+            self.model.camera.port_refraction_idx = float(self.refractionLineEdit.text())
+        except Exception as e:
+            self.refractionLineEdit.setText((str(self.model.camera.port_refraction_idx)))
+
+        self.updateModel()
 
     def on_camera_info(self):
         if self.model.camera.sensor.initialized:
@@ -602,10 +613,10 @@ class Model:
         plt.show()
 
     def plotdof(self):
-        N = np.arange(1, 12, 0.1)
-        d = np.arange(500, 2000, 100)
+        N = np.arange(1, 6, 0.1)
+        d = np.arange(0.5, 2.0, .01)
         nn, dd = np.meshgrid(N, d)
-        res = self.camera.vectorized_dof(nn, dd)/1000.
+        res = self.camera.vectorized_dof(nn, dd)
 
 
         fig = plt.figure()
