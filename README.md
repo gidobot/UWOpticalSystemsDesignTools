@@ -59,6 +59,10 @@ In the context of an imaging survey of the seabed, this is the desired percentag
 
 Speed of imaging system motion along survey path.
 
+#### Gain
+
+Add an analog gain to the sensor response.
+
 #### Max Motion Blur
 
 Maximum allowable pixel blur in the aquired images. For feature matching applications, this is generally desired to be 1 pixel.
@@ -73,7 +77,11 @@ The orientation of the camera referenced to the primary axis of motion. Portrait
 
 #### Housing Viewport Type
 
-Viewport can be set to flat or dome, though the dome type is not yet fully supported in the software.
+Viewport can be set to flat or dome. When the dome port is selected, extra parameters can also be set, including the dome external radius and the thickness of the port material.
+
+#### Port Index of Refraction
+
+Set the index of refraction according to the port material.
 
 #### Bottom Type
 
@@ -94,21 +102,24 @@ The maximum exposure time is calculated based on the maximum pixel blur and the 
 
 The angular field of view in the x and y imaging axes are reported as well as the spacial field of view based on the imaging altitude.
 
+#### Signal to Noise Ratio
+
+The amplitude ratio signal to noise ratio is a primary output for choosing hardware and lighting requirements. This value is calculated based on all optical, operational, and envrionmental parameters. Recent [**studies**](https://iopscience.iop.org/article/10.1088/1742-6596/806/1/012006/meta) on underwater image noise indicate a good target minimum signal to noise ratio is 30dB or an amplitude ratio of 32. An SNR value less than this is considered poor image quality, and feature based image processing methods may suffer in performance.
+
 #### Avg Image Intensity
 
-The average image intensity is the primary output that dictates hardware and lighting requirements. This value is calculated based on all optical, operational, and envrionmental parameters. The tool assumes no gain is added to the sensor response, but this may be added as an additional parameter in the future with a signal to noise reponse estimate. As a rule of thumb, a good target average image intensity for underwater is ~30%.
+The average image intensity is another primary output that should be dictate design choices. As a rule of thumb, a good target average image intensity for underwater is ~30%. The gain parameter can be increased to achieve the desired average image intensity, given a satisfactory signal to noise ratio.
 
 #### Min Framerate
 
 The minimum framerate is calcualted based on the speed of the imaging system and the desired minimum overlap between consecutive image frames.
+
+#### Virtual Image Distance from Front of Dome
+
+When a dome port is compressed to a virtual imaging space that extends less than 3 dome radii fron the external dome vertex. The virtual image distance is the actual distance of the focal plane in front of the dome, and is the distance at which the camera should be focused in air to attain the target focal plane underwater.
 
 ## Generate UI
 
 To modify and generate the UI use Qt Creator. 
 Changes to the UI file have to be converted to python with: 
 ```pyuic5 qt/UWOpticalSystemDesigner/mainwindow.ui -o src/mainwindow.py```
-
-## ToDo
-
-* Fully implement dome viewport
-* Add gain parameter with signal to noise ratio output
