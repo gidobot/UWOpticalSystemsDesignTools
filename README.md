@@ -16,7 +16,7 @@ See our associated [**publication**](https://arxiv.org/abs/2004.06763) for detai
     title={Parametric Design of Underwater Optical Systems},
     author={Gideon Billings and Eduardo Iscar and Matthew Johnson-Roberson},
     year={2020},
-  journal={IEEE Global OCEANS: Singapore-U.S. Gulf Coast}
+    journal={IEEE Global OCEANS: Singapore-U.S. Gulf Coast}
 }
 ```
 
