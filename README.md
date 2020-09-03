@@ -26,7 +26,7 @@ From src folder, launch GUI as
 `python main.py`
 
 Example image of the user interface  
-![alt text](resources/interface.png)
+![alt text](resources/designInterface.png)
 
 The interface is divided into three sections: where the top section is hardware and lighting configuration, the middle section is input operational parameters, and the bottom section is the output performance and constraints of the imaging system. Following are brief descriptions of the different parameters.  
 
