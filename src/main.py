@@ -634,7 +634,7 @@ def main():
     logging.info('Started')
 
     app = QtWidgets.QApplication(sys.argv)  # A new instance of QApplication
-    app.setWindowIcon(QtGui.QIcon('/home/eiscar/PyCharm_Projects/UWOpticalSystemDesigner/resources/light_model.png'))
+    # app.setWindowIcon(QtGui.QIcon('/home/eiscar/PyCharm_Projects/UWOpticalSystemDesigner/resources/light_model.png'))
     form = UnderwaterOpticalCalculatorApp()  # We set the form to be our ExampleApp (design)
     form.show()                         # Show the form
     app.exec_()
