@@ -9,14 +9,14 @@ SIP
 
 ## Citation  
 
-See our associated [**arxiv**](https://arxiv.org/abs/2004.06763) publication for detailed information about the light propogation model and implementation. If you use this tool for research, we request that you cite the following work
+See our associated [**publication**](https://arxiv.org/abs/2004.06763) for detailed information about the light propogation model and implementation. If you use this tool for research, we request that you cite the following work
 
 ```
 @article{{billings2020parametric,
     title={Parametric Design of Underwater Optical Systems},
     author={Gideon Billings and Eduardo Iscar and Matthew Johnson-Roberson},
     year={2020},
-  journal={arXiv preprint arXiv:2004.06763}
+  journal={IEEE Global OCEANS: Singapore-U.S. Gulf Coast}
 }
 ```
 
