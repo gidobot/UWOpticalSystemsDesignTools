@@ -3,6 +3,9 @@ This tool acts as a simple "back of the envelope" calculator to guide camera and
 
 The tool incorporates modeling of the source lighting spectrum, physical modeling of spectrum dependent light propagation through different water bodies, lensing effects, and manufacturer specified camera sensor response functions to provide realistic estimates of imaging performance, based on a set of input operational parameters.
 
+Global OCEANS 2020 video presentation:
+https://youtu.be/aolHdhE3spA
+
 ## Python Dependencies: 
 Pyqt5
 SIP
