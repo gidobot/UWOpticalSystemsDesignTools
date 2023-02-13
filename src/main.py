@@ -325,6 +325,7 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         Initialize a generic LED. Callback for generic led sliders and LineEdit
         :return:
         """
+        self.beamAngleSlider.setValue(min(self.beamAngleSlider.value(), 89))
         self.model.light.init_generic_led_light(self.luminousFluxLineEdit.text(),
                                                     float(self.beamAngleSlider.value()))
         self.beamAngleLineEdit.setText(("%i" % self.beamAngleSlider.value()))
