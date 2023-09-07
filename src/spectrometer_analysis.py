@@ -412,16 +412,16 @@ def get_spectrum_fwhm(path):
     r1, r2 = spline.roots() # find the roots
     plt.figure()
     plt.plot(wavelength, irradiance)
-    print(r1, r2)
+    print((r1, r2))
     plt.show()
 
 def compute_image_uniformity(image):
     dE = ((np.max(image)-np.min(image))/np.mean(image)) *100
 
     if dE <3:
-        print("Image illumination is sufficiently uniform (dE={})".format(dE))
+        print(("Image illumination is sufficiently uniform (dE={})".format(dE)))
     else:
-        print("Image illumination is NOT uniform enough. dE={}".format(dE))
+        print(("Image illumination is NOT uniform enough. dE={}".format(dE)))
 
 if __name__=="__main__":
     #main("/home/eiscar/PyCharm_Projects/UWOpticalSystemDesigner/LightData/LightMeasurements/LEDARRAY_001_02ﾟ_6471K.csv")

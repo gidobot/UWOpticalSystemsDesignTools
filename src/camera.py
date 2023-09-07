@@ -72,10 +72,10 @@ class Sensor:
 
                 self.dark_noise = float(sensor_data["dark_noise"])
                 self.gain = float(sensor_data["gain"])
-                print("Sensor gain: {}".format(self.gain))
+                print(("Sensor gain: {}".format(self.gain)))
 
             except KeyError as e:
-                print("Error parsing json data for sensor. Key not found:",e)
+                print(("Error parsing json data for sensor. Key not found:",e))
 
         self.initialized = True
         return True
@@ -132,7 +132,7 @@ class Sensor:
         wavelength = wavelength*math.pow(10, -3) # from nm to um
         pixel_area = self.get_pixel_area('um')
         incident_photons = 50.34 * pixel_area * exposure_time * wavelength * irradiance
-        print("Pixel Area: {} Exposure time: {} Wavelength: {} Irradiance E: {}[W/m2], Photons: {} ".format(pixel_area, exposure_time, wavelength, irradiance, incident_photons))
+        print(("Pixel Area: {} Exposure time: {} Wavelength: {} Irradiance E: {}[W/m2], Photons: {} ".format(pixel_area, exposure_time, wavelength, irradiance, incident_photons)))
 
         return incident_photons
 
@@ -192,11 +192,11 @@ class Sensor:
         # Comp incident photons
         incident_photons_spectrum = np.multiply(incident_spectrum, wavelengths)*exposure_time*self.get_pixel_area('m')/(h*c)
         incident_photons_total = np.trapz(incident_photons_spectrum, wavelength_m)
-        print("Total number of incident photons {}".format(incident_photons_total))
+        print(("Total number of incident photons {}".format(incident_photons_total)))
 
         # Absorbed energy
         absorbed_energy = np.trapz(np.multiply(incident_spectrum, np.multiply(wavelengths, quantum_eff_spectrum)), wavelengths)
-        print("Absorbed Energy: {}[W/m2]".format(absorbed_energy))
+        print(("Absorbed Energy: {}[W/m2]".format(absorbed_energy)))
 
         # plt.plot(wavelengths, incident_photons_spectrum)
         # plt.show()
@@ -221,8 +221,8 @@ class Sensor:
         photon_density = integral / (h*c)  # Photons/m2s
         photons = photon_density * self.get_pixel_area('m') * exposure_time
         # print(self.get_pixel_area('m'))
-        print("h*c= {}:".format(h*c))
-        print("Pixel Area: {}m2 Exposure time: {}s Wavelengths: {}-{}[nm] Integral: {}, Photons: {} ".format(self.get_pixel_area('m'), exposure_time, wavelengths[0],wavelengths[-1], integral, photons))
+        print(("h*c= {}:".format(h*c)))
+        print(("Pixel Area: {}m2 Exposure time: {}s Wavelengths: {}-{}[nm] Integral: {}, Photons: {} ".format(self.get_pixel_area('m'), exposure_time, wavelengths[0],wavelengths[-1], integral, photons)))
 
         return photons
 
@@ -236,7 +236,7 @@ class Sensor:
         :return:
         """
         photons = self.compute_absorbed_photons_broadband(wavelengths, incident_spectrum, exposure_time)
-        print("Gain: {}, Dark Noise: {}".format(self.gain,self.dark_noise))
+        print(("Gain: {}, Dark Noise: {}".format(self.gain,self.dark_noise)))
         signal = self.user_gain*self.gain * (self.dark_noise+photons)
         return signal
 
@@ -363,7 +363,7 @@ class Lens:
         if t > 1:
             logger.error("Transmittance value of %f bigger then 1", t)
             return False
-        self.transmittance_wav = range(400, 1001, 50)
+        self.transmittance_wav = list(range(400, 1001, 50))
         self.transmittance = [t] * len(self.transmittance_wav)
         self.initialized = True
         return True
@@ -633,7 +633,7 @@ class OperationalParameters:
         self.bottom_type = self.set_bottom_type(bot)
 
     def set_bottom_type(self, bot):
-        if bot in self.bottom_type_dict.keys():
+        if bot in list(self.bottom_type_dict.keys()):
             self.bottom_type = bot
         else:
             self.bottom_type = 'Benthic Average'

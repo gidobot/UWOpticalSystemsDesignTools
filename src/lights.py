@@ -126,7 +126,7 @@ class LightSource:
                 self.spectral_dist = np.array([float(x) for x in light_data["spectral_distribution"]])
                 self.initialized = True
             except KeyError as e:
-                print("Error parsing json data for light. Key not found:", e)
+                print(("Error parsing json data for light. Key not found:", e))
 
     def init_generic_led_light(self, luminous_flux, beam_angle):
         self.name = "Generic LED"

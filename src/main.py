@@ -153,8 +153,8 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
 
     def on_camera_info(self):
         if self.model.camera.sensor.initialized:
-            print(self.model.camera.sensor.quantum_efficiency_wav)
-            print(self.model.camera.sensor.quantum_efficiency)
+            print((self.model.camera.sensor.quantum_efficiency_wav))
+            print((self.model.camera.sensor.quantum_efficiency))
             graph = GraphWindow(self.model.camera.sensor.quantum_efficiency_wav,
                                 self.model.camera.sensor.quantum_efficiency,
                                 "Wavelength [nm]", "Quantum efficiency", self)
@@ -506,7 +506,7 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         self.avgImgValueValueLabel.setText("%.2f" % self.model.response)
         self.dofNearValueLabel.setText("%.1f" % (self.model.scene.depthoffield[0]))
         self.dofFarValueLabel.setText("%.1f" % (self.model.scene.depthoffield[1]))
-        self.chosenExposureSlider.setMaximum(self.model.max_exposure*1000000.)
+        self.chosenExposureSlider.setMaximum(int(self.model.max_exposure*1000000))
         if float(self.chosenExposureLineEdit.text())/1000. > self.model.max_exposure:
             self.chosenExposureLineEdit.setText("%.2f" % (self.model.max_exposure*1000.))
             self.update_exposure_slider()
@@ -562,13 +562,13 @@ class Model:
             logging.info("Updating full image formation model")
 
             lights_wavelength, lights_irradiance_spectrum = self.light.get_irradiance_spectrum(self.scene.altitude)
-            print(np.max(lights_irradiance_spectrum))
+            print((np.max(lights_irradiance_spectrum)))
             water_attenuation = [self.water.get_attenuation(x, self.scene.altitude) for x in lights_wavelength]
-            print(np.max(water_attenuation))
+            print((np.max(water_attenuation)))
             # TODO: Get reflection value
             # reflection = [0.53] * len(lights_wavelength)
             reflection = [self.scene.get_reflectance()] * len(lights_wavelength)
-            print("Reflectance: {}".format(self.scene.get_reflectance()))
+            print(("Reflectance: {}".format(self.scene.get_reflectance())))
 
             lens_transmittance = [self.camera.lens.get_transmittance(x)*
                                   self.camera.lens.lens_aperture_attenuation(self.aperture)
