@@ -1,8 +1,8 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from camera import Camera,  OperationalParameters
+from camera import Camera
+from scene import Scene
 from lights import LightSource
-from wateratenuationmodel import WaterPropagation
 from plotWindows import GraphWindow, PlotWidget
 import mainwindow
 
@@ -174,8 +174,8 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
                                                          "information.",  QtWidgets.QMessageBox.Ok)
 
     def on_attenuation_info(self):
-        if self.model.water.initialized:
-            graph = GraphWindow(self.model.water.jerlov_wavelenths, self.model.water.attenuation_coef,
+        if self.model.scene.water.initialized:
+            graph = GraphWindow(self.model.scene.water.jerlov_wavelenths, self.model.scene.water.attenuation_coef,
                                 "Wavelength [nm]", "Attenuation  Coefficient", self)
             graph.show()
         else:
@@ -194,31 +194,31 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
     def on_water_combobox(self, index):
         if index == 0:
             # Custom water attenuation profile
-            self.model.water.reset()
+            self.model.scene.water.reset()
         elif index == 1:
             # Load Jerlov I profile
-            self.model.water.load_jerlovI_profile()
+            self.model.scene.water.load_jerlovI_profile()
             logging.info("Loaded JerlovI profile")
         elif index == 2:
-            self.model.water.load_jerlovII_profile()
+            self.model.scene.water.load_jerlovII_profile()
             logging.info("Loaded JerlovII profile")
         elif index == 3:
-            self.model.water.load_jerlovIII_profile()
+            self.model.scene.water.load_jerlovIII_profile()
             logging.info("Loaded JerlovIII profile")
         elif index == 4:
-            self.model.water.load_jerlov1C_profile()
+            self.model.scene.water.load_jerlov1C_profile()
             logging.info("Loaded Jerlov1C profile")
         elif index == 5:
-            self.model.water.load_jerlov3C_profile()
+            self.model.scene.water.load_jerlov3C_profile()
             logging.info("Loaded Jerlov3C profile")
         elif index == 6:
-            self.model.water.load_jerlov5C_profile()
+            self.model.scene.water.load_jerlov5C_profile()
             logging.info("Loaded Jerlov5C profile")
         elif index == 7:
-            self.model.water.load_jerlov7C_profile()
+            self.model.scene.water.load_jerlov7C_profile()
             logging.info("Loaded Jerlov7C profile")
         elif index == 8:
-            self.model.water.load_jerlov9C_profile()
+            self.model.scene.water.load_jerlov9C_profile()
             logging.info("Loaded Jerlov9C profile")
         self.updateModel()
 
@@ -517,8 +517,9 @@ class Model:
     def __init__(self):
         self.camera = Camera()
         self.light = LightSource()
-        self.scene = OperationalParameters()
-        self.water = WaterPropagation()
+        self.scene = Scene()
+
+        self.lights = []
 
         self.fov_x = 0.
         self.fov_y = 0.
@@ -532,6 +533,9 @@ class Model:
         self.response = 0.
         self.snr = 0.
         self.dome_virtual_distance = 0.
+
+    def add_light(self, light):
+        self.lights.append(light)
 
     def update(self):
         logging.info("Updating model")
@@ -558,12 +562,12 @@ class Model:
             self.framerate = 0.
 
 
-        if self.camera.initialized() and self.water.initialized and self.light.initialized:
+        if self.camera.initialized() and self.scene.water.initialized and self.light.initialized:
             logging.info("Updating full image formation model")
 
             lights_wavelength, lights_irradiance_spectrum = self.light.get_irradiance_spectrum(self.scene.altitude)
             print(np.max(lights_irradiance_spectrum))
-            water_attenuation = [self.water.get_attenuation(x, self.scene.altitude) for x in lights_wavelength]
+            water_attenuation = [self.scene.water.get_attenuation(x, self.scene.altitude) for x in lights_wavelength]
             print(np.max(water_attenuation))
             # TODO: Get reflection value
             # reflection = [0.53] * len(lights_wavelength)

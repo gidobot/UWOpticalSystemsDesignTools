@@ -4,6 +4,7 @@ import numpy as np
 import scipy.stats
 from scipy.integrate import simps
 import json
+from transforms3d import euler
 
 import logging
 logger = logging.getLogger(__name__)
@@ -17,12 +18,64 @@ class LightSource:
         self.spectral_dist = []
         self.initialized = False
 
+        self.offset = np.zeros(3)
+        self.orientation = np.zeros(3)
+
         self.photopic_wavelengths = np.arange(370, 780, 10)
         self.photopic_eff = [0.0001, 0.0004, 0.0015, 0.0045, 0.0093, 0.0175, 0.0273, 0.0379, 0.0468, 0.0600,
                         0.0910, 0.1390, 0.2080, 0.3230, 0.5030, 0.7100, 0.8620, 0.9540, 0.9950, 0.9950,
                         0.9520, 0.8700, 0.7570, 0.6310, 0.5030, 0.3810, 0.2650, 0.1750, 0.1070, 0.0610,
                         0.0320, 0.0170, 0.0082, 0.0041, 0.0021, 0.0011, 0.0005, 0.0002, 0.0001, 0.0001,
                         0.0000]
+
+    # offset of light from camera
+    def set_offset(self, offset):
+        if len(offset) == 3:
+            self.offset = offset
+        else:
+            logger.error("Offset must be a 3 element array")
+
+    # orientation of light relative to camera frame in x,y,z order euler angles as radians
+    def set_orientation(self, orientation):
+        if len(orientation) == 3:
+            self.orientation = orientation
+        else:
+            logger.error("Orientation must be a 3 element array")
+
+    # convert world point into coordinate frame of light source
+    def transform_from_world(self, pw):
+        rx, ry, rz = self.orientation
+        R = euler.euler2mat(rx, ry, rz, 'sxyz')
+        T = np.eye(4)
+        T[:3, 3] = self.offset
+        T[:3, :3] = R
+        pw = np.append(pw, 1.)
+        pl = np.dot(T, pw)[:3]
+        return pl
+
+    #TODO: Unit test
+    def check_visibility(self, pw):
+        pl = self.transform_from_world(pw)
+        # check angle between point and z axis of light
+        pld = pl/np.linalg.norm(pl)
+        cos = np.dot(pld, np.array([0.,0.,1.]))
+        theta = np.arccos(cos)
+        # point is illuminated if angle is less than half the light beam angle
+        if theta < np.radians(self.beam_angle/2.):
+            return True
+        else:
+            return False
+
+    #TODO: Unit test
+    def compute_incident_angle(self, pw, normal):
+        ray_direction = pw - self.offset
+        ray_direction = ray_direction/np.linalg.norm(ray_direction)
+        cos = np.dot(-ray_direction, normal)
+        theta = np.arccos(cos)
+        return theta
+
+    def compute_distance(self, pw):
+        return np.linalg.norm(pw - self.offset)
 
     def compute_beam_area(self, working_distance):
         if self.initialized:

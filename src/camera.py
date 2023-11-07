@@ -72,7 +72,7 @@ class Sensor:
 
                 self.dark_noise = float(sensor_data["dark_noise"])
                 self.gain = float(sensor_data["gain"])
-                print("Sensor gain: {}".format(self.gain))
+                logging.debug("Sensor gain: {}".format(self.gain))
 
             except KeyError as e:
                 print("Error parsing json data for sensor. Key not found:",e)
@@ -132,7 +132,7 @@ class Sensor:
         wavelength = wavelength*math.pow(10, -3) # from nm to um
         pixel_area = self.get_pixel_area('um')
         incident_photons = 50.34 * pixel_area * exposure_time * wavelength * irradiance
-        print("Pixel Area: {} Exposure time: {} Wavelength: {} Irradiance E: {}[W/m2], Photons: {} ".format(pixel_area, exposure_time, wavelength, irradiance, incident_photons))
+        logging.debug("Pixel Area: {} Exposure time: {} Wavelength: {} Irradiance E: {}[W/m2], Photons: {} ".format(pixel_area, exposure_time, wavelength, irradiance, incident_photons))
 
         return incident_photons
 
@@ -165,7 +165,7 @@ class Sensor:
         :param irradiance: Incident Radiance E on sensor surface in [uW/cm^2]
         :return: Mean digital signal
         """
-        print("Compute digital signal narrowband")
+        logging.debug("Compute digital signal narrowband")
         signal = self.user_gain*self.gain*(self.dark_noise+self.compute_absorbed_photons(wavelength, exposure_time, irradiance))
         return signal
 
@@ -192,11 +192,11 @@ class Sensor:
         # Comp incident photons
         incident_photons_spectrum = np.multiply(incident_spectrum, wavelengths)*exposure_time*self.get_pixel_area('m')/(h*c)
         incident_photons_total = np.trapz(incident_photons_spectrum, wavelength_m)
-        print("Total number of incident photons {}".format(incident_photons_total))
+        logging.debug("Total number of incident photons {}".format(incident_photons_total))
 
         # Absorbed energy
         absorbed_energy = np.trapz(np.multiply(incident_spectrum, np.multiply(wavelengths, quantum_eff_spectrum)), wavelengths)
-        print("Absorbed Energy: {}[W/m2]".format(absorbed_energy))
+        logging.debug("Absorbed Energy: {}[W/m2]".format(absorbed_energy))
 
         # plt.plot(wavelengths, incident_photons_spectrum)
         # plt.show()
@@ -221,8 +221,8 @@ class Sensor:
         photon_density = integral / (h*c)  # Photons/m2s
         photons = photon_density * self.get_pixel_area('m') * exposure_time
         # print(self.get_pixel_area('m'))
-        print("h*c= {}:".format(h*c))
-        print("Pixel Area: {}m2 Exposure time: {}s Wavelengths: {}-{}[nm] Integral: {}, Photons: {} ".format(self.get_pixel_area('m'), exposure_time, wavelengths[0],wavelengths[-1], integral, photons))
+        logging.debug("h*c= {}:".format(h*c))
+        logging.debug("Pixel Area: {}m2 Exposure time: {}s Wavelengths: {}-{}[nm] Integral: {}, Photons: {} ".format(self.get_pixel_area('m'), exposure_time, wavelengths[0],wavelengths[-1], integral, photons))
 
         return photons
 
@@ -236,7 +236,7 @@ class Sensor:
         :return:
         """
         photons = self.compute_absorbed_photons_broadband(wavelengths, incident_spectrum, exposure_time)
-        print("Gain: {}, Dark Noise: {}".format(self.gain,self.dark_noise))
+        logging.debug("Gain: {}, Dark Noise: {}".format(self.gain,self.dark_noise))
         signal = self.user_gain*self.gain * (self.dark_noise+photons)
         return signal
 
@@ -282,6 +282,7 @@ class Sensor:
         coc = sensor_diag / 1500.
         return coc
 
+
 class Lens:
     def __init__(self):
         self.name = None
@@ -324,6 +325,7 @@ class Lens:
         """
         return np.interp(wave_length, self.transmittance_wav, self.transmittance)
 
+    # https://www.cs.cmu.edu/afs/cs/academic/class/16823-s16/www/pdfs/appearance-modeling-2.pdf
     def fundamental_radiometric_relation(self, L, N, alfa):
         """
         Fundamental Radiometric relation between scene radiance L and the light Irradiance E reaching the pixel sensor
@@ -430,7 +432,7 @@ class Camera:
         :return: FOV in radians
         """
         fov = 2. * np.arctan2(self.sensor.get_sensor_size(axis)/1000., 2.*self.effective_focal_length)
-        logger.debug("Angular FOV: %f", fov)
+        # logger.debug("Angular FOV: %f", fov)
         return fov
 
     def get_fov(self, axis, working_distance):
@@ -608,38 +610,6 @@ class Camera:
         f = speed / (self.get_fov(axis, working_distance)*(1-overlap))
         return f
 
-
-
-class OperationalParameters:
-    def __init__(self):
-        self.altitude = 1.
-        self.overlap = 0.25
-        self.speed = 0.
-        self.motion_blur = 1.
-        self.depthoffield = (0., 0.)
-        self.bottom_type = 'Benthic Average'
-
-        self.axis = 'x'
-
-        # Bottom type reflection coarsley estimated from http://www.ioccg.org/training/SLS-2016/Dierssen_IOCCG_Lecture1_webLO.pdf
-        self.bottom_type_dict = {'Benthic Average': 0.2, 'Sand': 0.35, 'Hard': 0.3, 'Coral': 0.15, 'Organic': 0.1}
-
-    def initialize(self, alt, ovr, spe, mot, dep, bot):
-        self.altitude = alt
-        self.overlap = ovr
-        self.speed = spe
-        self.motion_blur = mot
-        self.depthoffield = dep
-        self.bottom_type = self.set_bottom_type(bot)
-
-    def set_bottom_type(self, bot):
-        if bot in self.bottom_type_dict.keys():
-            self.bottom_type = bot
-        else:
-            self.bottom_type = 'Benthic Average'
-
-    def get_reflectance(self):
-        return self.bottom_type_dict[self.bottom_type]
 
 
 class Reflectance:
