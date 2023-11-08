@@ -1,4 +1,4 @@
-__author__ = 'gbillings'
+__author__ = 'Gideon Billings'
 
 import numpy as np
 import logging
@@ -61,6 +61,31 @@ class Raytracer:
         cos = np.dot(pwd, np.array([0.,0.,1.]))
         theta = np.arccos(cos)
         return theta
+
+    def compute_scene_light_map(self):
+        assert self.model.camera.initialized and self.model.scene.water.initialized, "Camera and scene must be initialized."
+
+        pixel_size = self.model.camera.sensor.pixel_size * math.pow(10, -3) # convert from um to mm
+
+        z = self.depth_map * 1000. # convert from m to mm
+
+        # create grid of pixel coordinates
+        x, y = np.meshgrid(np.arange(self.model.sensor.resolution_x), np.arange(self.model.sensor.resolution_y))
+        # compute projection of pixels into 3D world
+        x = (x - self.model.camera.sensor.resolution_x/2.0) * pixel_size * z / self.model.camera.effective_focal_length
+        y = (y - self.model.camera.sensor.resolution_y/2.0) * pixel_size * z / self.model.camera.effective_focal_length
+
+        # stack the x, y, z coordinates to create a (height, width, 4) world homogeneous coordinate matrix
+        projection_map = np.stack((x,y,z,np.ones(x.shape)), axis=-1)
+
+        # compute light visibility maps
+        for light in self.model.lights:
+            assert light.initialized, "Light must be initialized."
+
+            light_map = light.compute_visibility_map(projection_map)
+            print("Here 1") 
+            import pdb; pdb.set_trace()
+            print("Here 2") 
 
     def compute_pixel_response(self, px, py):
         assert self.model.camera.initialized and self.model.scene.water.initialized, "Camera and scene must be initialized."
@@ -143,7 +168,8 @@ def test():
 
     raytracer = Raytracer(model)
 
-    image, snr_map = raytracer.render()
+    # image, snr_map = raytracer.render()
+    raytracer.compute_scene_light_map()
 
 if __name__=="__main__":
     test()

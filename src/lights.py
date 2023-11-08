@@ -53,6 +53,18 @@ class LightSource:
         pl = np.dot(T, pw)[:3]
         return pl
 
+    # convert world points map into coordinate frame of light source
+    def transform_from_world_map(self, W):
+        rx, ry, rz = self.orientation
+        R = euler.euler2mat(rx, ry, rz, 'sxyz')
+        T = np.eye(4)
+        T[:3, 3] = self.offset
+        T[:3, :3] = R
+        # add dimension to matrix for broadcast vector multiplication
+        W = np.stack((W, np.ones(W.shape[:2])), axis=-1)
+        L = T @ W
+        return L
+
     #TODO: Unit test
     def check_visibility(self, pw):
         pl = self.transform_from_world(pw)
@@ -65,6 +77,20 @@ class LightSource:
             return True
         else:
             return False
+
+    def compute_visibility_map(self, W):
+        L = self.transform_from_world_map(W)
+        L = L[:-1] # dehomogenize coordinates
+        # compute angle map between coordinates and z axis of light
+        N = np.linalg.norm(L, axis=-1)
+        N = np.expand_dims(N, axis=-1)
+        D = L/N
+        A = D[:,:,-1] # z axis is cos of angle with z axis of light
+        T = np.arccos(A)
+        # point is illuminated if angle is less than half the light beam angle
+        V = T < np.radians(self.beam_angle/2.)
+        V = V.astype(bool)
+        return V
 
     #TODO: Unit test
     def compute_incident_angle(self, pw, normal):
