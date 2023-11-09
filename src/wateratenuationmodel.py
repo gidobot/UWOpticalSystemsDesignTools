@@ -31,6 +31,19 @@ class WaterPropagation:
         b = np.interp(wavelength, self.jerlov_wavelenths, self.attenuation_coef)
         return math.exp(-b*distance)
 
+    def get_attenuation_map(self, wavelengths, distance_map):
+
+        if not np.all(np.diff(self.jerlov_wavelenths) > 0):
+            logger.error("Input Array not monotonically increasing for interpolation")
+            raise ValueError("Input Array not monotonically increasing for interpolation")
+
+        #if (wavelength < self.jerlov_wavelenths[0]) or (wavelength > self.jerlov_wavelenths[-1]):
+        #    logger.info("Requested value out of interpolation bounds")
+        b = np.interp(wavelengths, self.jerlov_wavelenths, self.attenuation_coef)
+        distance_map = np.expand_dims(distance_map, axis=-1)
+        distance_map = np.tile(distance_map, (1,1,len(wavelengths)))
+        return np.exp(-b*distance_map)
+
     def load_jerlovI_profile(self):
         # Kd - downard diffuse attenuation coefficient depends on sun azimuth angle and other factors not
         # inherent to the physical water properties. However, it also captures the forward scattering

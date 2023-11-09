@@ -60,10 +60,10 @@ class LightSource:
         T = np.eye(4)
         T[:3, 3] = self.offset
         T[:3, :3] = R
-        # add dimension to matrix for broadcast vector multiplication
-        W = np.stack((W, np.ones(W.shape[:2])), axis=-1)
+        T = np.linalg.inv(T)
+        W = np.expand_dims(W, axis=-1)
         L = T @ W
-        return L
+        return L[:,:,:,0]
 
     #TODO: Unit test
     def check_visibility(self, pw):
@@ -80,7 +80,7 @@ class LightSource:
 
     def compute_visibility_map(self, W):
         L = self.transform_from_world_map(W)
-        L = L[:-1] # dehomogenize coordinates
+        L = L[:,:,:-1] # dehomogenize coordinates
         # compute angle map between coordinates and z axis of light
         N = np.linalg.norm(L, axis=-1)
         N = np.expand_dims(N, axis=-1)
@@ -90,7 +90,7 @@ class LightSource:
         # point is illuminated if angle is less than half the light beam angle
         V = T < np.radians(self.beam_angle/2.)
         V = V.astype(bool)
-        return V
+        return V, T, N[:,:,0]
 
     #TODO: Unit test
     def compute_incident_angle(self, pw, normal):
@@ -105,9 +105,17 @@ class LightSource:
 
     def compute_beam_area(self, working_distance):
         if self.initialized:
-            return np.pi * (np.tan(np.radians(self.beam_angle))*working_distance)**2
+            return np.pi * (np.tan(np.radians(self.beam_angle/2.))*working_distance)**2
         else:
             return 0
+
+    def compute_beam_area_map(self, distance_map):
+        if self.initialized:
+            M = np.tan(np.radians(self.beam_angle/2.))*distance_map
+            M2 = M * M
+            return np.pi * M2
+        else:
+            return np.zeros(distance_map.shape)
 
     def compute_illuminance(self, working_distance):
         """
@@ -130,6 +138,23 @@ class LightSource:
         scale /= area   # Units: W/(nm*m2)
 
         return self.spectral_wav, scale*self.spectral_dist
+
+    def get_irradiance_spectrum_map(self, distance_map):
+        """
+        Get the spectrum of the light in irradiance units of W/(m2nm)
+        :param working_distance: Distance to surface being illuminated
+        :return: tuple of spectrum wavelength and corresponding irradiance
+        """
+        area = self.compute_beam_area_map(distance_map) # Units: m2
+        scale = np.ones(area.shape) * self.compute_spectral_radiance_scale()  # Units: W/nm
+        scale = scale / area   # Units: W/(nm*m2)
+
+        scale = np.expand_dims(scale, axis=-1)
+        scale = np.tile(scale, (1,1, self.spectral_dist.shape[0]))
+        
+        irradiance = scale * self.spectral_dist
+
+        return self.spectral_wav, irradiance
 
     def compute_spectral_radiance_scale(self):
         """
@@ -214,7 +239,8 @@ class LightSource:
         params = [450.70, 565.43, 11.67,  64.63,  24.49, 119.86]
         m1, m2, s1, s2, k1, k2 = params
 
-        self.spectral_wav = np.linspace(400, 801, 600)
+        # self.spectral_wav = np.linspace(400, 801, 600)
+        self.spectral_wav = np.linspace(400, 801, 20)
         self.spectral_dist = np.array([k1*scipy.stats.norm.pdf(x, loc=m1, scale=s1) + \
                                 k2 * scipy.stats.norm.pdf(x, loc=m2, scale=s2) for x in self.spectral_wav])
 

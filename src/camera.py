@@ -169,6 +169,35 @@ class Sensor:
         signal = self.user_gain*self.gain*(self.dark_noise+self.compute_absorbed_photons(wavelength, exposure_time, irradiance))
         return signal
 
+    def compute_absorbed_photons_broadband_map(self, wavelengths, incident_spectrum, exposure_time):
+        """
+        Compute the number of incident photons for broadband light defined as a spectrum
+        :param wavelengths: Array of wavelengths in nm
+        :param incident_spectrum: Array with incident light spectrum defined in W/(m2nm)
+        :param exposure_time: Exposure time of image in seconds
+        :return:
+        """
+        h = 6.62607004 * math.pow(10, -34)  # Plancks constant (m2kg)/s
+        c = 299792458.0  # speed of light in m/s
+
+        # Weight the spectrum with the quantum efficiency curve
+        quantum_eff_spectrum = [self.get_quantum_efficiency(x) for x in wavelengths]    # Units: Dimensionless
+        absorbed_spectrum = np.multiply(quantum_eff_spectrum, incident_spectrum)        # Units: W/(m2nm)
+
+        # Weight the spectrum with the wavelength
+        wavelength_m = np.array(wavelengths)*math.pow(10, -9)
+
+        lambda_spectrum = np.multiply(wavelengths, absorbed_spectrum)  # W/m2
+
+        # Comp incident photons
+        incident_photons_spectrum = np.multiply(incident_spectrum, wavelengths)*exposure_time*self.get_pixel_area('m')/(h*c)
+        incident_photons_total = np.trapz(incident_photons_spectrum, wavelength_m)
+        logging.debug("Total number of incident photons {}".format(incident_photons_total))
+
+        # Absorbed energy
+        absorbed_energy = np.trapz(np.multiply(incident_spectrum, np.multiply(wavelengths, quantum_eff_spectrum)), wavelengths)
+        logging.debug("Absorbed Energy: {}[W/m2]".format(absorbed_energy))
+
     def compute_absorbed_photons_broadband(self, wavelengths, incident_spectrum, exposure_time):
         """
         Compute the number of incident photons for broadband light defined as a spectrum
@@ -236,6 +265,20 @@ class Sensor:
         :return:
         """
         photons = self.compute_absorbed_photons_broadband(wavelengths, incident_spectrum, exposure_time)
+        logging.debug("Gain: {}, Dark Noise: {}".format(self.gain,self.dark_noise))
+        signal = self.user_gain*self.gain * (self.dark_noise+photons)
+        return signal
+
+    def compute_digital_signal_broadband_map(self, exposure_time, wavelengths, incident_spectrum):
+        """
+        Compute the output digital signal
+        :param gain: Gain of sensor
+        :param exposure_time: Exposure time of image in s
+        :param wavelengths: Array of wavelengths in nm
+        :param incident_spectrum: Spectrum of incident light in W/(nmm2)
+        :return:
+        """
+        photons = self.compute_absorbed_photons_broadband_map(wavelengths, incident_spectrum, exposure_time)
         logging.debug("Gain: {}, Dark Noise: {}".format(self.gain,self.dark_noise))
         signal = self.user_gain*self.gain * (self.dark_noise+photons)
         return signal
@@ -335,6 +378,19 @@ class Lens:
         :return: Irradiance reaching the pixel sensor
         """
         E = L*self.lens_aperture_attenuation(N)*self.natural_vignetting(alfa)
+        return E
+
+    def fundamental_radiometric_relation_map(self, L, N, alfa):
+        """
+        Fundamental Radiometric relation between scene radiance L and the light Irradiance E reaching the pixel sensor
+        :param L: Scene Radiance
+        :param N: Lens Aperture
+        :param alfa: Off-Axis Angle
+        :return: Irradiance reaching the pixel sensor
+        """
+        V = np.expand_dims(self.natural_vignetting(alfa), axis=-1)
+        V = np.tile(V, (1,1,L.shape[-1]))
+        E = L*self.lens_aperture_attenuation(N)*V
         return E
 
     @staticmethod
