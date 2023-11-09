@@ -192,11 +192,20 @@ class Sensor:
         # Comp incident photons
         incident_photons_spectrum = np.multiply(incident_spectrum, wavelengths)*exposure_time*self.get_pixel_area('m')/(h*c)
         incident_photons_total = np.trapz(incident_photons_spectrum, wavelength_m)
-        logging.debug("Total number of incident photons {}".format(incident_photons_total))
+        logging.debug("Max total number of incident photons {}".format(np.max(incident_photons_total)))
 
         # Absorbed energy
         absorbed_energy = np.trapz(np.multiply(incident_spectrum, np.multiply(wavelengths, quantum_eff_spectrum)), wavelengths)
         logging.debug("Absorbed Energy: {}[W/m2]".format(absorbed_energy))
+
+        integral = np.trapz(lambda_spectrum, wavelength_m)  # W/m
+        photon_density = integral / (h*c)  # Photons/m2s
+        photons = photon_density * self.get_pixel_area('m') * exposure_time
+        # print(self.get_pixel_area('m'))
+        logging.debug("h*c= {}:".format(h*c))
+        logging.debug("Pixel Area: {}m2 Exposure time: {}s Wavelengths: {}-{}[nm] Max Integral: {}, Max Photons: {} ".format(self.get_pixel_area('m'), exposure_time, wavelengths[0],wavelengths[-1], np.max(integral), np.max(photons)))
+
+        return photons
 
     def compute_absorbed_photons_broadband(self, wavelengths, incident_spectrum, exposure_time):
         """

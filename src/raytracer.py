@@ -102,7 +102,8 @@ class Raytracer:
             # compute light radiance from surface
             # Lambertian Diffuse BRDF: http://www.joshbarczak.com/blog/?p=272
             # https://boksajak.github.io/files/CrashCourseBRDF.pdf
-            cos_map = np.expand_dims(np.cos(light_angle_map), axis=-1)
+            cos_map = np.cos(light_angle_map) * light_map # mask spot coverage
+            cos_map = np.expand_dims(cos_map, axis=-1)
             cos_map = np.tile(cos_map, (1,1,lights_wavelength.shape[0]))
             radiance_spectrum_map = surface_irradiance_map * cos_map * self.model.scene.get_reflectance() / np.pi
             if total_radiance_spectrum_map is None:
@@ -114,9 +115,8 @@ class Raytracer:
             # plot light map image to window that fits screen
             # cv2.namedWindow("Light Map", cv2.WINDOW_NORMAL)
             # cv2.imshow("Light Map", light_map.astype(np.uint8) * 255)
-            # cv2.imshow("Light Map", np.ones(light_angle_map.shape) - light_angle_map / np.max(light_angle_map))
+            # # cv2.imshow("Light Map", np.ones(light_angle_map.shape) - light_angle_map / np.max(light_angle_map))
             # cv2.resizeWindow("Light Map", 800, 800)
-            # cv2.waitKey(0)
 
         # compute distance of each projected pixel world point to the camera
         camera_distance_map = np.linalg.norm(projection_map[:,:,:-1], axis=-1)
@@ -129,12 +129,17 @@ class Raytracer:
         lens_transmittance = [self.model.camera.lens.get_transmittance(x) for x in lights_wavelength]
         sensor_irradiance_map = lens_transmittance * self.model.camera.lens.fundamental_radiometric_relation_map(cam_incident_radiance_map, self.model.aperture, alpha_map)
 
-        TODO: fix compute_digital_response map function...
         # TODO: Currently assumes all sensor parameters given relative to 16bit pixel response
         digital_response_map = (self.model.camera.sensor.compute_digital_signal_broadband_map(self.model.exposure,
                                                                             lights_wavelength,
-                                                                            sensor_irradiance_map)/2**16)*100
+                                                                            sensor_irradiance_map)/2**16)
         # snr = self.model.camera.sensor.compute_signal_to_noise_ratio(self.model.exposure, lights_wavelength, sensor_irradiance)
+
+        cv2.namedWindow("Digital Response", cv2.WINDOW_NORMAL)
+        cv2.imshow("Digital Response", digital_response_map)
+        # cv2.imshow("Digital Response", np.ones(digital_response_map.shape) - digital_response_map / np.max(digital_response_map))
+        cv2.resizeWindow("Digital Response", 800, 800)
+        cv2.waitKey(0)
 
         return digital_response_map
 
@@ -189,7 +194,7 @@ class Raytracer:
         # TODO: Currently assumes all sensor parameters given relative to 16bit pixel response
         digital_response = (self.model.camera.sensor.compute_digital_signal_broadband(self.model.exposure,
                                                                             lights_wavelength,
-                                                                            sensor_irradiance)/2**16)*100
+                                                                            sensor_irradiance)/2**16)
         print("digital_response: {}".format(digital_response))
         snr = self.model.camera.sensor.compute_signal_to_noise_ratio(self.model.exposure, lights_wavelength, sensor_irradiance)
 
@@ -208,23 +213,29 @@ def test():
 
     # lumens, beam angle
     light = LightSource()
-    light.init_generic_led_light(500., 40.)
-    # light.set_offset([-1, 0, 0])
-    # light.set_orientation(np.radians([0, 15, 0]))
+    light.init_generic_led_light(10000., 60.)
+    light.set_offset([-1.2, 0, 0])
+    light.set_orientation(np.radians([0, 25, 0]))
     model.add_light(light)
+
+    light2 = LightSource()
+    light2.init_generic_led_light(10000., 60.)
+    light2.set_offset([1.2, 0, 0])
+    light2.set_orientation(np.radians([0, -25, 0]))
+    model.add_light(light2)
 
     model.scene.water.load_jerlov1C_profile()
     logging.info("Loaded Jerlov1C profile")
 
-    model.exposure = 0.05
+    model.exposure = 0.01
     model.scene.speed = 0.5
 
     model.update()
 
     raytracer = Raytracer(model)
 
-    r, snr = raytracer.compute_pixel_response(1000, 1000)
-    print("Pixel response: {}, SNR: {}".format(r, snr))
+    # r, snr = raytracer.compute_pixel_response(1000, 1000)
+    # print("Pixel response: {}, SNR: {}".format(r, snr))
 
     # image, snr_map = raytracer.render()
     raytracer.compute_scene_light_map()
