@@ -130,7 +130,8 @@ class Raytracer:
         sensor_irradiance_map = lens_transmittance * self.model.camera.lens.fundamental_radiometric_relation_map(cam_incident_radiance_map, self.model.aperture, alpha_map)
 
         # TODO: Currently assumes all sensor parameters given relative to 16bit pixel response
-        digital_response_map = (self.model.camera.sensor.compute_digital_signal_broadband_map(self.model.exposure,
+        # digital_response_map = (self.model.camera.sensor.compute_digital_signal_broadband_map(self.model.exposure,
+        digital_response_map = (self.model.camera.sensor.compute_digital_signal_broadband_color_map(self.model.exposure,
                                                                             lights_wavelength,
                                                                             sensor_irradiance_map)/2**16)
         # snr = self.model.camera.sensor.compute_signal_to_noise_ratio(self.model.exposure, lights_wavelength, sensor_irradiance)
