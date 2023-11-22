@@ -14,7 +14,7 @@ class Raytracer:
         self.model = model
 
         # create initial planar depth map at 2 meters depth
-        self.depth_map = np.ones((int(model.camera.sensor.resolution_y), int(model.camera.sensor.resolution_x))) * 2.0
+        self.depth_map = np.ones((int(model.camera.sensor.resolution_y), int(model.camera.sensor.resolution_x))) * 1.16
         # create initial surface normal map with unit vector along negative z axis (towards camera)
         self.surface_normal_map = np.ones((int(model.camera.sensor.resolution_y), int(model.camera.sensor.resolution_x), 3)) * np.array([0.0, 0.0, -1.0])
 
@@ -207,28 +207,31 @@ def test():
 
     model = Model()
 
-    model.camera.sensor.load('../cfg/sensors/imx250C.json')
+    model.camera.sensor.load('../cfg/sensors/imx264C.json')
     # focal length, transmittance
     model.camera.lens.init_generic_lens(8., 0.9)
 
     # lumens, beam angle
     light = LightSource()
-    light.init_generic_led_light(10000., 60.)
-    light.set_offset([-1.2, 0, 0])
+    light.init_generic_led_light(5000., 90.)
+    light.set_offset([-0.5, 0, 0])
     light.set_orientation(np.radians([0, 25, 0]))
     model.add_light(light)
 
     light2 = LightSource()
-    light2.init_generic_led_light(10000., 60.)
-    light2.set_offset([1.2, 0, 0])
+    light2.init_generic_led_light(5000., 90.)
+    light2.set_offset([0.5, 0, 0])
     light2.set_orientation(np.radians([0, -25, 0]))
     model.add_light(light2)
 
     model.scene.water.load_jerlov1C_profile()
     logging.info("Loaded Jerlov1C profile")
 
-    model.exposure = 0.01
-    model.scene.speed = 0.5
+    model.exposure = 0.020
+    model.scene.speed = 0.001
+    model.scene.altitude = 1.16
+    model.scene.bottom_type = 'Sand'
+    model.aperture = 3.0
 
     model.update()
 

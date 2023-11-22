@@ -1,10 +1,10 @@
-__author__ = 'eiscar'
+__author__ = 'Gideon Billings'
 import numpy as np
 import json
 import math
 from scipy.integrate import simps, romb
+import matplotlib
 import matplotlib.pyplot as plt
-
 
 import logging
 logger = logging.getLogger(__name__)
@@ -116,7 +116,15 @@ class Sensor:
         red = np.array([np.interp(x, self.quantum_efficiency_wav_color["red"], self.quantum_efficiency_color["red"]) for x in mono_wav], dtype=float)
         green = np.array(self.quantum_efficiency_color["green"], dtype=float)
         blue = np.array([np.interp(x, self.quantum_efficiency_wav_color["blue"], self.quantum_efficiency_color["blue"]) for x in mono_wav], dtype=float)
-        mono_eff = (2.*green + red + blue)/4.
+        # mono_eff = green + red + blue
+        # linear conversion to luminance
+        # https://www.dynamsoft.com/blog/insights/image-processing/image-processing-101-color-space-conversion/
+        # mono_eff = (green + red + blue)/3
+        # mono_eff = 0.299*red + 0.587*green + 0.114*blue
+        mono_eff = np.max((red,green,blue),axis=0)
+        # matplotlib.use('TkAgg')
+        # plt.plot(mono_wav, mono_eff)
+        # plt.show()
         return mono_wav, mono_eff
 
     def compute_incident_photons(self, wavelength, exposure_time, irradiance):
