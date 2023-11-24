@@ -8,6 +8,9 @@ import math
 import sys
 from multiprocessing import Pool
 import cv2
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 
 class Raytracer:
     def __init__(self, model):
@@ -136,12 +139,6 @@ class Raytracer:
                                                                             sensor_irradiance_map)/2**16)
         # snr = self.model.camera.sensor.compute_signal_to_noise_ratio(self.model.exposure, lights_wavelength, sensor_irradiance)
 
-        cv2.namedWindow("Digital Response", cv2.WINDOW_NORMAL)
-        cv2.imshow("Digital Response", digital_response_map)
-        # cv2.imshow("Digital Response", np.ones(digital_response_map.shape) - digital_response_map / np.max(digital_response_map))
-        cv2.resizeWindow("Digital Response", 800, 800)
-        cv2.waitKey(0)
-
         return digital_response_map
 
     def compute_pixel_response(self, px, py):
@@ -219,16 +216,16 @@ def test():
     light.set_orientation(np.radians([0, 25, 0]))
     model.add_light(light)
 
-    light2 = LightSource()
-    light2.init_generic_led_light(5000., 90.)
-    light2.set_offset([0.5, 0, 0])
-    light2.set_orientation(np.radians([0, -25, 0]))
-    model.add_light(light2)
+    # light2 = LightSource()
+    # light2.init_generic_led_light(5000., 90.)
+    # light2.set_offset([0.5, 0, 0])
+    # light2.set_orientation(np.radians([0, -25, 0]))
+    # model.add_light(light2)
 
     model.scene.water.load_jerlov1C_profile()
     logging.info("Loaded Jerlov1C profile")
 
-    model.exposure = 0.020
+    model.exposure = 0.040
     model.scene.speed = 0.001
     model.scene.altitude = 1.16
     model.scene.bottom_type = 'Sand'
@@ -242,7 +239,30 @@ def test():
     # print("Pixel response: {}, SNR: {}".format(r, snr))
 
     # image, snr_map = raytracer.render()
-    raytracer.compute_scene_light_map()
+    digital_response_map = raytracer.compute_scene_light_map()
+
+    # cv2.namedWindow("Digital Response", cv2.WINDOW_NORMAL)
+    # cv2.imshow("Digital Response", digital_response_map)
+    # cv2.imshow("Digital Response", np.ones(digital_response_map.shape) - digital_response_map / np.max(digital_response_map))
+    # cv2.resizeWindow("Digital Response", 800, 800)
+    # cv2.waitKey(0)
+
+    fig1 = plt.figure()
+    ax1 = fig1.add_subplot(111)
+    ax1.imshow(digital_response_map)
+
+
+    idx = digital_response_map.shape[0] // 2
+    px_row = digital_response_map[idx]
+
+    fig2 = plt.figure()
+    ax2 = fig2.add_subplot(111)
+    ax2.plot(px_row)
+    colors = ['r', 'g', 'b']
+    for i,j in enumerate(ax2.lines):
+        j.set_color(colors[i])
+
+    plt.show()
 
 if __name__=="__main__":
     test()
