@@ -49,6 +49,7 @@ class LightSource:
         T = np.eye(4)
         T[:3, 3] = self.offset
         T[:3, :3] = R
+        T = np.linalg.inv(T)
         pw = np.append(pw, 1.)
         pl = np.dot(T, pw)[:3]
         return pl
@@ -70,7 +71,7 @@ class LightSource:
         pl = self.transform_from_world(pw)
         # check angle between point and z axis of light
         pld = pl/np.linalg.norm(pl)
-        cos = np.dot(pld, np.array([0.,0.,1.]))
+        cos = pld[2]
         theta = np.arccos(cos)
         # point is illuminated if angle is less than half the light beam angle
         if theta < np.radians(self.beam_angle/2.):
@@ -97,6 +98,16 @@ class LightSource:
         ray_direction = pw - self.offset
         ray_direction = ray_direction/np.linalg.norm(ray_direction)
         cos = np.dot(-ray_direction, normal)
+        theta = np.arccos(cos)
+        return theta
+
+    def compute_incident_angle_map(self, W, N):
+        D = W - self.offset
+        DN = np.linalg.norm(D, axis=-1)
+        DN = np.expand_dims(DN, axis=-1)
+        D = D/DN
+        cos = -D * N
+        cos = np.sum(cos, axis=-1)
         theta = np.arccos(cos)
         return theta
 
@@ -151,7 +162,7 @@ class LightSource:
 
         scale = np.expand_dims(scale, axis=-1)
         scale = np.tile(scale, (1,1, self.spectral_dist.shape[0]))
-        
+
         irradiance = scale * self.spectral_dist
 
         return self.spectral_wav, irradiance

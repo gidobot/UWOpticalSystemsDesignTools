@@ -26,6 +26,7 @@ class Sensor:
         self.quantum_efficiency = []  # List of tuples with wavelength,quantum_efficiency
 
         self.dark_noise = 0.  # In Electrons
+        self.dark_noise_variance = 0.  # In Electrons
         self.gain = 0.
         self.initialized = False
         self.user_gain = 1.
@@ -70,7 +71,8 @@ class Sensor:
                 else:
                     return False
 
-                self.dark_noise = float(sensor_data["dark_noise"])
+                self.dark_noise = float(sensor_data["dark_noise"]) # DN units
+                self.dark_noise_variance = float(sensor_data["dark_noise_variance"]) # e- units
                 self.gain = float(sensor_data["gain"])
                 logging.debug("Sensor gain: {}".format(self.gain))
 
@@ -148,14 +150,27 @@ class Sensor:
         absorbed_photons = quantum_efficiency * self.compute_incident_photons(wavelength, exposure_time, irradiance)
         return absorbed_photons
 
-    def compute_signal_to_noise_ratio(self, exposure_time, wavelengths, incident_spectrum):
-        u_a = self.compute_absorbed_photons_broadband(wavelengths, incident_spectrum, exposure_time)
-        sq_2 = 1/12 # assumes 12bit ADC for machine vision cameras
-        sd_2 = self.dark_noise**2
-        k = self.user_gain*self.gain
-        k_2 = k**2
-        snr = u_a/math.sqrt(sd_2 + sq_2/k_2 + u_a)
-        return snr
+    # Reference: https://www.emva.org/wp-content/uploads/EMVA1288Linear_4.0Release.pdf
+    # def compute_signal_to_noise_ratio(self, exposure_time, wavelengths, incident_spectrum):
+    #     u_a = self.compute_absorbed_photons_broadband(wavelengths, incident_spectrum, exposure_time)
+    #     sq_2 = 1/12 # assumes 12bit ADC for machine vision cameras
+    #     sd_2 = self.dark_noise**2
+    #     k = self.user_gain*self.gain
+    #     k_2 = k**2
+    #     snr = u_a/math.sqrt(sd_2 + sq_2/k_2 + u_a)
+    #     return snr
+
+    # Reference: https://www.emva.org/wp-content/uploads/EMVA1288Linear_4.0Release.pdf
+    def compute_signal_to_noise_ratio(self, absorbed_photons):
+        u_a = absorbed_photons
+        sq_2 = 1/12 # assumes 12bit ADC for machine vision cameras with unit integer steps
+        # assume typical value for dark_noise_variance, though it is really exposure time dependent
+        sd_2 = self.dark_noise_variance**2
+        k_2 = self.gain**2
+        snr = u_a/np.sqrt(sd_2 + sq_2/k_2 + u_a)
+        # ideal sensor only has shot noise. No dark or quantization noise
+        snr_ideal = np.sqrt(u_a)
+        return snr, snr_ideal
 
     def compute_digital_signal(self, exposure_time, wavelength, irradiance):
         """
@@ -166,8 +181,8 @@ class Sensor:
         :return: Mean digital signal
         """
         logging.debug("Compute digital signal narrowband")
-        signal = self.user_gain*self.gain*(self.dark_noise+self.compute_absorbed_photons(wavelength, exposure_time, irradiance))
-        return signal
+        signal = self.user_gain*(self.dark_noise + self.gain*self.compute_absorbed_photons(wavelength, exposure_time, irradiance))
+        return signal/2**16
 
     def compute_absorbed_photons_broadband_map(self, wavelengths, incident_spectrum, exposure_time):
         """
@@ -275,8 +290,10 @@ class Sensor:
         """
         photons = self.compute_absorbed_photons_broadband(wavelengths, incident_spectrum, exposure_time)
         logging.debug("Gain: {}, Dark Noise: {}".format(self.gain,self.dark_noise))
-        signal = self.user_gain*self.gain * (self.dark_noise+photons)
-        return signal
+        signal = self.user_gain * (self.dark_noise*exposure_time + self.gain*photons)
+        # assume 12bit ADC and report values in percent exposed
+        signal = signal / 2**12
+        return signal, photons
 
     def compute_digital_signal_broadband_map(self, exposure_time, wavelengths, incident_spectrum):
         """
@@ -289,8 +306,11 @@ class Sensor:
         """
         photons = self.compute_absorbed_photons_broadband_map(wavelengths, incident_spectrum, exposure_time)
         logging.debug("Gain: {}, Dark Noise: {}".format(self.gain,self.dark_noise))
-        signal = self.user_gain*self.gain * (self.dark_noise+photons)
-        return signal
+        # TODO: Update all dark_noise to DN units
+        signal = self.user_gain * (self.dark_noise*exposure_time + self.gain*photons)
+        # assume 12bit ADC and report values in percent exposed
+        signal = signal / 2**12
+        return signal, photons
 
     def get_sensor_size(self, axis):
         """

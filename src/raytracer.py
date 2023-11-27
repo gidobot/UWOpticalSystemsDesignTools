@@ -102,7 +102,8 @@ class Raytracer:
             # compute light radiance from surface
             # Lambertian Diffuse BRDF: http://www.joshbarczak.com/blog/?p=272
             # https://boksajak.github.io/files/CrashCourseBRDF.pdf
-            cos_map = np.cos(light_angle_map) * light_map # mask spot coverage
+            # cos_map = np.cos(light_angle_map) * light_map # mask spot coverage
+            cos_map = np.cos(light.compute_incident_angle_map(projection_map[:,:,:-1], self.surface_normal_map)) * light_map # mask spot coverage
             cos_map = np.expand_dims(cos_map, axis=-1)
             cos_map = np.tile(cos_map, (1,1,lights_wavelength.shape[0]))
             radiance_spectrum_map = surface_irradiance_map * cos_map * self.model.scene.get_reflectance() / np.pi
@@ -129,11 +130,11 @@ class Raytracer:
         lens_transmittance = [self.model.camera.lens.get_transmittance(x) for x in lights_wavelength]
         sensor_irradiance_map = lens_transmittance * self.model.camera.lens.fundamental_radiometric_relation_map(cam_incident_radiance_map, self.model.aperture, alpha_map)
 
-        # TODO: Currently assumes all sensor parameters given relative to 16bit pixel response
-        digital_response_map = (self.model.camera.sensor.compute_digital_signal_broadband_map(self.model.exposure,
+        # TODO: Currently assumes all sensor parameters given relative to 12bit pixel response
+        digital_response_map, absorbed_photons_map = self.model.camera.sensor.compute_digital_signal_broadband_map(self.model.exposure,
                                                                             lights_wavelength,
-                                                                            sensor_irradiance_map)/2**16)
-        # snr = self.model.camera.sensor.compute_signal_to_noise_ratio(self.model.exposure, lights_wavelength, sensor_irradiance)
+                                                                            sensor_irradiance_map)
+        snr, snr_ideal = self.model.camera.sensor.compute_signal_to_noise_ratio(absorbed_photons_map)
 
         cv2.namedWindow("Digital Response", cv2.WINDOW_NORMAL)
         cv2.imshow("Digital Response", digital_response_map)
@@ -155,7 +156,7 @@ class Raytracer:
             if not light.check_visibility(pw):
                 continue
 
-            theta = light.compute_incident_angle(pw, self.surface_normal_map[py, px])
+            theta = light.compute_incident_angle(pw, self.surface_normal_map[py, px, :])
             if theta > np.pi/2:
                 continue
 
@@ -182,6 +183,8 @@ class Raytracer:
             logging.debug("No light sources visible from pixel {},{}".format(px, py))
             return 0., 0.
 
+        print("total_radiance_spectrum: {}".format(total_radiance_spectrum))
+
         cam_to_scene_distance = np.linalg.norm(pw)
         # compute attenuation of light from scene to camera
         water_attenuation = [self.model.scene.water.get_attenuation(x, cam_to_scene_distance) for x in lights_wavelength]
@@ -191,12 +194,15 @@ class Raytracer:
         lens_transmittance = [self.model.camera.lens.get_transmittance(x) for x in lights_wavelength]
         sensor_irradiance = lens_transmittance * self.model.camera.lens.fundamental_radiometric_relation(cam_incident_radiance, self.model.aperture, alpha)
 
-        # TODO: Currently assumes all sensor parameters given relative to 16bit pixel response
-        digital_response = (self.model.camera.sensor.compute_digital_signal_broadband(self.model.exposure,
+        print("sensor_irradiance: {}".format(sensor_irradiance))
+
+        # TODO: Currently assumes all sensor parameters given relative to 12bit pixel response
+        digital_response, absorbed_photons = self.model.camera.sensor.compute_digital_signal_broadband(self.model.exposure,
                                                                             lights_wavelength,
-                                                                            sensor_irradiance)/2**16)
+                                                                            sensor_irradiance)
         print("digital_response: {}".format(digital_response))
-        snr = self.model.camera.sensor.compute_signal_to_noise_ratio(self.model.exposure, lights_wavelength, sensor_irradiance)
+        snr, snr_ideal = self.model.camera.sensor.compute_signal_to_noise_ratio(absorbed_photons)
+        print("snr: {}, snr_ideal: {}".format(snr, snr_ideal))
 
         return digital_response, snr
 
@@ -209,25 +215,25 @@ def test():
 
     model.camera.sensor.load('../cfg/sensors/imx250C.json')
     # focal length, transmittance
-    model.camera.lens.init_generic_lens(8., 0.9)
+    model.camera.lens.init_generic_lens(6., 0.9)
 
     # lumens, beam angle
     light = LightSource()
-    light.init_generic_led_light(10000., 60.)
+    light.init_generic_led_light(6000., 80.)
     light.set_offset([-1.2, 0, 0])
-    light.set_orientation(np.radians([0, 25, 0]))
+    light.set_orientation(np.radians([0, 30, 0]))
     model.add_light(light)
 
     light2 = LightSource()
-    light2.init_generic_led_light(10000., 60.)
+    light2.init_generic_led_light(6000., 80.)
     light2.set_offset([1.2, 0, 0])
-    light2.set_orientation(np.radians([0, -25, 0]))
+    light2.set_orientation(np.radians([0, -20, 0]))
     model.add_light(light2)
 
     model.scene.water.load_jerlov1C_profile()
     logging.info("Loaded Jerlov1C profile")
 
-    model.exposure = 0.01
+    model.exposure = 0.003
     model.scene.speed = 0.5
 
     model.update()
