@@ -1,10 +1,10 @@
-__author__ = 'eiscar'
+__author__ = 'Gideon Billings'
 import numpy as np
 import json
 import math
 from scipy.integrate import simps, romb
+import matplotlib
 import matplotlib.pyplot as plt
-
 
 import logging
 logger = logging.getLogger(__name__)
@@ -23,10 +23,12 @@ class Sensor:
         self.min_shutter_time = 20. # In micro seconds
 
         self.quantum_efficiency_wav = []
+        self.quantum_efficiency_color = {}
+        self.quantum_efficiency_wav_color = {}
         self.quantum_efficiency = []  # List of tuples with wavelength,quantum_efficiency
 
         self.dark_noise = 0.  # In Electrons
-        self.dark_noise_variance = 0.  # In Electrons
+        self.dark_current = 0.  # In Electrons
         self.gain = 0.
         self.initialized = False
         self.user_gain = 1.
@@ -71,8 +73,8 @@ class Sensor:
                 else:
                     return False
 
-                self.dark_noise = float(sensor_data["dark_noise"]) # DN units
-                self.dark_noise_variance = float(sensor_data["dark_noise_variance"]) # e- units
+                self.dark_noise = float(sensor_data["dark_noise"]) # e- units
+                self.dark_current = float(sensor_data["dark_current"]) # e- units
                 self.gain = float(sensor_data["gain"])
                 logging.debug("Sensor gain: {}".format(self.gain))
 
@@ -101,6 +103,14 @@ class Sensor:
         """
         return np.interp(wave_length, self.quantum_efficiency_wav, self.quantum_efficiency)
 
+    def get_quantum_efficiency_color(self, wave_length, color):
+        """
+        Interpolate Quantum efficiency value for a given wavelength
+        :param wave_length: Input wavelength
+        :return:
+        """
+        return np.interp(wave_length, self.quantum_efficiency_wav_color[color], self.quantum_efficiency_color[color])
+
     def compute_combined_color_quantum_efficiency(self):
         """
         Calculate mono quantum efficiency response for color camera from individual
@@ -118,7 +128,15 @@ class Sensor:
         red = np.array([np.interp(x, self.quantum_efficiency_wav_color["red"], self.quantum_efficiency_color["red"]) for x in mono_wav], dtype=float)
         green = np.array(self.quantum_efficiency_color["green"], dtype=float)
         blue = np.array([np.interp(x, self.quantum_efficiency_wav_color["blue"], self.quantum_efficiency_color["blue"]) for x in mono_wav], dtype=float)
-        mono_eff = (2.*green + red + blue)/4.
+        # mono_eff = green + red + blue
+        # linear conversion to luminance
+        # https://www.dynamsoft.com/blog/insights/image-processing/image-processing-101-color-space-conversion/
+        # mono_eff = (green + red + blue)/3
+        # mono_eff = 0.299*red + 0.587*green + 0.114*blue
+        mono_eff = np.max((red,green,blue),axis=0)
+        # matplotlib.use('TkAgg')
+        # plt.plot(mono_wav, mono_eff)
+        # plt.show()
         return mono_wav, mono_eff
 
     def compute_incident_photons(self, wavelength, exposure_time, irradiance):
@@ -164,8 +182,7 @@ class Sensor:
     def compute_signal_to_noise_ratio(self, absorbed_photons):
         u_a = absorbed_photons
         sq_2 = 1/12 # assumes 12bit ADC for machine vision cameras with unit integer steps
-        # assume typical value for dark_noise_variance, though it is really exposure time dependent
-        sd_2 = self.dark_noise_variance**2
+        sd_2 = self.dark_noise**2
         k_2 = self.gain**2
         snr = u_a/np.sqrt(sd_2 + sq_2/k_2 + u_a)
         # ideal sensor only has shot noise. No dark or quantization noise
@@ -181,8 +198,53 @@ class Sensor:
         :return: Mean digital signal
         """
         logging.debug("Compute digital signal narrowband")
-        signal = self.user_gain*(self.dark_noise + self.gain*self.compute_absorbed_photons(wavelength, exposure_time, irradiance))
+        signal = self.user_gain(self.dark_current*exposure_time + self.gain*self.compute_absorbed_photons(wavelength, exposure_time, irradiance))
         return signal/2**16
+
+    def compute_absorbed_photons_broadband_color_map(self, wavelengths, incident_spectrum, exposure_time):
+        """
+        Compute the number of incident photons for broadband light defined as a spectrum
+        :param wavelengths: Array of wavelengths in nm
+        :param incident_spectrum: Array with incident light spectrum defined in W/(m2nm)
+        :param exposure_time: Exposure time of image in seconds
+        :return:
+        """
+        h = 6.62607004 * math.pow(10, -34)  # Plancks constant (m2kg)/s
+        c = 299792458.0  # speed of light in m/s
+
+        # Weight the spectrum with the quantum efficiency curve
+        quantum_eff_spectrum = np.zeros((len(wavelengths), 3)) # rgb color channels
+        quantum_eff_spectrum[:,0]   = [self.get_quantum_efficiency_color(x, 'red') for x in wavelengths]    # Units: Dimensionless
+        quantum_eff_spectrum[:,1] = [self.get_quantum_efficiency_color(x, 'green') for x in wavelengths]    # Units: Dimensionless
+        quantum_eff_spectrum[:,2]  = [self.get_quantum_efficiency_color(x, 'blue') for x in wavelengths]    # Units: Dimensionless
+
+        I = np.expand_dims(incident_spectrum, axis=-1)
+        I = np.tile(I, (1,1,1,3))
+        absorbed_spectrum = np.multiply(I, quantum_eff_spectrum)        # Units: W/(m2nm)
+
+        W = np.expand_dims(wavelengths, axis=-1)
+        W = np.tile(W, (1,3))
+        lambda_spectrum = np.multiply(absorbed_spectrum, W)  # W/m2
+
+        # Comp incident photons
+        # incident_photons_spectrum = np.multiply(incident_spectrum, wavelengths)*exposure_time*self.get_pixel_area('m')/(h*c)
+        # incident_photons_total = np.trapz(incident_photons_spectrum, wavelength_m)
+        # logging.debug("Max total number of incident photons {}".format(np.max(incident_photons_total)))
+
+        # Absorbed energy
+        # absorbed_energy = np.trapz(np.multiply(incident_spectrum, np.multiply(wavelengths, quantum_eff_spectrum)), wavelengths)
+        # logging.debug("Absorbed Energy: {}[W/m2]".format(absorbed_energy))
+
+        wavelength_m = np.array(wavelengths)*math.pow(10, -9)
+        integral = np.trapz(lambda_spectrum, wavelength_m, axis=2)  # W/m
+        photon_density = integral / (h*c)  # Photons/m2s
+        photons = photon_density * self.get_pixel_area('m') * exposure_time
+
+        # print(self.get_pixel_area('m'))
+        logging.debug("h*c= {}:".format(h*c))
+        logging.debug("Pixel Area: {}m2 Exposure time: {}s Wavelengths: {}-{}[nm] Max Integral: {}, Max Photons: {} ".format(self.get_pixel_area('m'), exposure_time, wavelengths[0],wavelengths[-1], np.max(integral), np.max(photons)))
+
+        return photons
 
     def compute_absorbed_photons_broadband_map(self, wavelengths, incident_spectrum, exposure_time):
         """
@@ -196,11 +258,8 @@ class Sensor:
         c = 299792458.0  # speed of light in m/s
 
         # Weight the spectrum with the quantum efficiency curve
-        quantum_eff_spectrum = [self.get_quantum_efficiency(x) for x in wavelengths]    # Units: Dimensionless
+        quantum_eff_spectrum = [self.get_quantum_efficiency_color(x, 'red') for x in wavelengths]    # Units: Dimensionless
         absorbed_spectrum = np.multiply(quantum_eff_spectrum, incident_spectrum)        # Units: W/(m2nm)
-
-        # Weight the spectrum with the wavelength
-        wavelength_m = np.array(wavelengths)*math.pow(10, -9)
 
         lambda_spectrum = np.multiply(wavelengths, absorbed_spectrum)  # W/m2
 
@@ -213,6 +272,7 @@ class Sensor:
         absorbed_energy = np.trapz(np.multiply(incident_spectrum, np.multiply(wavelengths, quantum_eff_spectrum)), wavelengths)
         logging.debug("Absorbed Energy: {}[W/m2]".format(absorbed_energy))
 
+        wavelength_m = np.array(wavelengths)*math.pow(10, -9)
         integral = np.trapz(lambda_spectrum, wavelength_m)  # W/m
         photon_density = integral / (h*c)  # Photons/m2s
         photons = photon_density * self.get_pixel_area('m') * exposure_time
@@ -289,10 +349,11 @@ class Sensor:
         :return:
         """
         photons = self.compute_absorbed_photons_broadband(wavelengths, incident_spectrum, exposure_time)
-        logging.debug("Gain: {}, Dark Noise: {}".format(self.gain,self.dark_noise))
-        signal = self.user_gain * (self.dark_noise*exposure_time + self.gain*photons)
-        # assume 12bit ADC and report values in percent exposed
-        signal = signal / 2**12
+        logging.debug("Gain: {}, Dark Current: {}".format(self.gain,self.dark_current))
+        signal = self.user_gain * (self.dark_current*exposure_time + self.gain*photons)
+        # assume parameters given with respect to 16bit response, such as provided by FLIR datasheets, and report values in percent exposed
+        # signal = signal / 2**12
+        signal = signal / 2**16
         return signal, photons
 
     def compute_digital_signal_broadband_map(self, exposure_time, wavelengths, incident_spectrum):
@@ -306,10 +367,28 @@ class Sensor:
         """
         photons = self.compute_absorbed_photons_broadband_map(wavelengths, incident_spectrum, exposure_time)
         logging.debug("Gain: {}, Dark Noise: {}".format(self.gain,self.dark_noise))
-        # TODO: Update all dark_noise to DN units
-        signal = self.user_gain * (self.dark_noise*exposure_time + self.gain*photons)
-        # assume 12bit ADC and report values in percent exposed
-        signal = signal / 2**12
+        signal = self.user_gain * (self.dark_current*exposure_time + self.gain*photons)
+        # assume parameters given with respect to 16bit response, such as provided by FLIR datasheets, and report values in percent exposed
+        # signal = signal / 2**12
+        signal = signal / 2**16
+        return signal, photons
+
+    def compute_digital_signal_broadband_color_map(self, exposure_time, wavelengths, incident_spectrum):
+        """
+        Compute the output digital signal
+        :param gain: Gain of sensor
+        :param exposure_time: Exposure time of image in s
+        :param wavelengths: Array of wavelengths in nm
+        :param incident_spectrum: Spectrum of incident light in W/(nmm2)
+        :return:
+        """
+        photons = self.compute_absorbed_photons_broadband_color_map(wavelengths, incident_spectrum, exposure_time)
+        logging.debug("Gain: {}, Dark Noise: {}".format(self.gain,self.dark_noise))
+        signal = self.user_gain * (self.dark_current*exposure_time + self.gain*photons)
+        # assume gain given as 16bit value and report values in percent exposed
+        # assume parameters given with respect to 16bit response, such as provided by FLIR datasheets, and report values in percent exposed
+        # signal = signal / 2**12
+        signal = signal / 2**16
         return signal, photons
 
     def get_sensor_size(self, axis):
