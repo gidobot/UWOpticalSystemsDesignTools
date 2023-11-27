@@ -14,7 +14,7 @@ class Scene:
         self.axis = 'x'
 
         # Bottom type reflection coarsley estimated from http://www.ioccg.org/training/SLS-2016/Dierssen_IOCCG_Lecture1_webLO.pdf
-        self.bottom_type_dict = {'Benthic Average': 0.2, 'Sand': 0.35, 'Hard': 0.3, 'Coral': 0.15, 'Organic': 0.1}
+        self.bottom_type_dict = {'Benthic Average': 0.2, 'Sand': 0.35, 'Hard': 0.3, 'Coral': 0.15, 'Organic': 0.1, 'Perfect': 1.0}
 
         self.water = WaterPropagation()
 

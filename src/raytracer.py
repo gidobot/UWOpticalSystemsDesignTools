@@ -184,7 +184,6 @@ def test(args):
     # focal length, transmittance
     model.camera.lens.init_generic_lens(8., 0.9)
 
-    # lumens, beam angle
     light = LightSource()
     light.init_generic_led_light(5000., 90.)
     light.set_offset([-0.5, 0, 0])
@@ -200,10 +199,11 @@ def test(args):
     model.scene.water.load_jerlov1C_profile()
     logging.info("Loaded Jerlov1C profile")
 
-    model.exposure = 0.020
-    model.scene.speed = 0.001
+    model.exposure = args.exposure / 1.0e6
+    # model.exposure = 0.01
+    model.scene.speed = 0.001 
     model.scene.altitude = 1.16
-    model.scene.bottom_type = 'Sand'
+    model.scene.bottom_type = 'Perfect'
     model.aperture = 3.0
 
     model.update()
@@ -214,6 +214,8 @@ def test(args):
     # print("Pixel response: {}, SNR: {}".format(r, snr))
 
     digital_response_map, snr_map, snr_ideal_map = raytracer.compute_scene_light_map()
+
+    digital_response_map = digital_response_map * np.array([0.3, 0.45, 0.6])
 
     fig1 = plt.figure()
     ax1 = fig1.add_subplot(121)
@@ -250,6 +252,7 @@ def test(args):
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Test camera response raytracer')
     parser.add_argument('-i', '--image', type=str, help='Path to ground truth response image', required=False, default=None)
+    parser.add_argument('-e', '--exposure', type=float, help='Exposure value in us', required=True)
     return parser.parse_args()
 
 if __name__=="__main__":
