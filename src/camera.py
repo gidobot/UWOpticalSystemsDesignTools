@@ -488,7 +488,7 @@ class Lens:
         E = L*self.lens_aperture_attenuation(N)*self.natural_vignetting(alfa)
         return E
 
-    def fundamental_radiometric_relation_map(self, L, N, alfa):
+    def fundamental_radiometric_relation_map(self, L, N, cos_alfa):
         """
         Fundamental Radiometric relation between scene radiance L and the light Irradiance E reaching the pixel sensor
         :param L: Scene Radiance
@@ -496,7 +496,10 @@ class Lens:
         :param alfa: Off-Axis Angle
         :return: Irradiance reaching the pixel sensor
         """
-        V = np.expand_dims(self.natural_vignetting(alfa), axis=-1)
+        # https://www.cs.cmu.edu/afs/cs/academic/class/16823-s16/www/pdfs/appearance-modeling-2.pdf
+        # https://www.vision-doctor.com/en/optical-errors/vignetting.html
+        # only modeling natural vignetting, not artificial vignetting due to lens design
+        V = np.expand_dims(cos_alfa**4, axis=-1)
         V = np.tile(V, (1,1,L.shape[-1]))
         E = L*self.lens_aperture_attenuation(N)*V
         return E
@@ -507,6 +510,9 @@ class Lens:
 
     @staticmethod
     def natural_vignetting(alfa):
+        # https://www.cs.cmu.edu/afs/cs/academic/class/16823-s16/www/pdfs/appearance-modeling-2.pdf
+        # https://www.vision-doctor.com/en/optical-errors/vignetting.html
+        # only modeling natural vignetting, not artificial vignetting due to lens design
         return np.cos(alfa)**4
 
     def get_aperture_diameter(self, N):

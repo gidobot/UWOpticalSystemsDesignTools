@@ -12,6 +12,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import argparse
+import os
 
 class Raytracer:
     def __init__(self, model):
@@ -51,6 +52,12 @@ class Raytracer:
         cos = pwd[:,:,2]
         theta = np.arccos(cos)
         return theta
+
+    def compute_off_axis_cos_angle_map(self, projection_map, camera_distance_map):
+        camera_distance_map = np.expand_dims(camera_distance_map, axis=-1)
+        pwd = projection_map / np.tile(camera_distance_map, (1,1,3))
+        cos = pwd[:,:,2]
+        return cos
 
     def compute_scene_light_map(self):
         assert self.model.camera.initialized and self.model.scene.water.initialized, "Camera and scene must be initialized."
@@ -98,9 +105,11 @@ class Raytracer:
         # attenuated spectrum incident on camera
         cam_incident_radiance_map = total_radiance_spectrum_map * water_attenuation_map
         # fundamental radiometric relation
-        alpha_map = self.compute_off_axis_angle_map(projection_map[:,:,:-1], camera_distance_map)
+        # alpha_map = self.compute_off_axis_angle_map(projection_map[:,:,:-1], camera_distance_map)
+        cos_alpha_map = self.compute_off_axis_cos_angle_map(projection_map[:,:,:-1], camera_distance_map)
+
         lens_transmittance = [self.model.camera.lens.get_transmittance(x) for x in lights_wavelength]
-        sensor_irradiance_map = lens_transmittance * self.model.camera.lens.fundamental_radiometric_relation_map(cam_incident_radiance_map, self.model.aperture, alpha_map)
+        sensor_irradiance_map = lens_transmittance * self.model.camera.lens.fundamental_radiometric_relation_map(cam_incident_radiance_map, self.model.aperture, cos_alpha_map)
 
         # TODO: Currently assumes all sensor parameters given relative to 16bit pixel response
         # digital_response_map = (self.model.camera.sensor.compute_digital_signal_broadband_map(self.model.exposure,
@@ -164,7 +173,7 @@ class Raytracer:
 
         print("sensor_irradiance: {}".format(sensor_irradiance))
 
-        # TODO: Currently assumes all sensor parameters given relative to 12bit pixel response
+        # TODO: Currently assumes all sensor parameters given relative to 16bit pixel response
         digital_response, absorbed_photons = self.model.camera.sensor.compute_digital_signal_broadband(self.model.exposure,
                                                                             lights_wavelength,
                                                                             sensor_irradiance)
@@ -187,14 +196,14 @@ def test(args):
     light = LightSource()
     light.init_generic_led_light(5000., 90.)
     light.set_offset([-0.5, 0, 0])
-    light.set_orientation(np.radians([0, 25, 0]))
+    light.set_orientation(np.radians([0, 30, 0]))
     model.add_light(light)
 
-    light2 = LightSource()
-    light2.init_generic_led_light(5000., 90.)
-    light2.set_offset([0.5, 0, 0])
-    light2.set_orientation(np.radians([0, -25, 0]))
-    model.add_light(light2)
+    # light2 = LightSource()
+    # light2.init_generic_led_light(5000., 90.)
+    # light2.set_offset([0.5, 0, 0])
+    # light2.set_orientation(np.radians([0, -30, 0]))
+    # model.add_light(light2)
 
     model.scene.water.load_jerlov1C_profile()
     logging.info("Loaded Jerlov1C profile")
@@ -203,7 +212,7 @@ def test(args):
     # model.exposure = 0.01
     model.scene.speed = 0.001 
     model.scene.altitude = 1.16
-    model.scene.bottom_type = 'Perfect'
+    model.scene.bottom_type = 'Perfect' # manually tune albedo
     model.aperture = 3.0
 
     model.update()
@@ -215,7 +224,11 @@ def test(args):
 
     digital_response_map, snr_map, snr_ideal_map = raytracer.compute_scene_light_map()
 
-    digital_response_map = digital_response_map * np.array([0.3, 0.45, 0.6])
+    reflectance = np.array([0.3, 0.45, 0.6])
+
+    digital_response_map = digital_response_map * reflectance
+    snr_map = snr_map * np.sqrt(reflectance)
+    snr_ideal_map = snr_ideal_map * np.sqrt(reflectance)
 
     fig1 = plt.figure()
     ax1 = fig1.add_subplot(121)
@@ -227,32 +240,56 @@ def test(args):
     px_row = digital_response_map[idx]
 
     fig2 = plt.figure()
-    ax2 = fig2.add_subplot(111)
+    ax2 = fig2.add_subplot(121)
     ax2.plot(px_row)
     colors = ['r', 'g', 'b']
     for i,j in enumerate(ax2.lines):
         j.set_color(colors[i])
+    ax2.set_xlabel('Pixel')
+    # set y label to % exposed
+    ax2.set_ylabel('Digital response (% exposed)')
+
+    snr_row = snr_map[idx]
+    snr_ideal_row = snr_ideal_map[idx]
+    ax22 = fig2.add_subplot(122)
+    ax22.plot(snr_row)
+    ax22.plot(snr_ideal_row,'--')
+    colors = ['r', 'g', 'b','r','g','b']
+    for i,j in enumerate(ax22.lines):
+        j.set_color(colors[i])
+    ax22.set_xlabel('Pixel')
+    # set y label to % exposed
+    ax22.set_ylabel('SNR')
 
     if args.image is not None:
-        # imread image as float32
-        ground_truth_img = cv2.imread(args.image).astype(np.float32) / 255.0
+        # read in raw 16bit tif image as float
+        ground_truth_img = cv2.imread(args.image, cv2.IMREAD_UNCHANGED).astype(np.float32) / 65535.0
         ground_truth_img = cv2.cvtColor(ground_truth_img, cv2.COLOR_BGR2RGB)
-        ax3 = fig1.add_subplot(122)
-        ax3.imshow(ground_truth_img)
-        ax3.axis('off')
+        ax12 = fig1.add_subplot(122)
+        ax12.imshow(ground_truth_img)
+        ax12.axis('off')
 
         px_row_gt = ground_truth_img[idx]
-        ax2.plot(px_row_gt, '-')
+        ax2.plot(px_row_gt, '--')
         colors = ['r', 'g', 'b']
         for i,j in enumerate(ax2.lines[3:]):
             j.set_color(colors[i])
 
-    plt.show()
+    if args.save_path is not None:
+        if not os.path.exists(args.save_path):
+            os.makedirs(args.save_path)
+        fig1.savefig(os.path.join(args.save_path,str(args.exposure)+'_imgs.png'), bbox_inches='tight')
+        fig2.savefig(os.path.join(args.save_path,str(args.exposure)+'_plot.png'), bbox_inches='tight')
+
+    if not args.quiet:
+        plt.show()
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Test camera response raytracer')
     parser.add_argument('-i', '--image', type=str, help='Path to ground truth response image', required=False, default=None)
     parser.add_argument('-e', '--exposure', type=float, help='Exposure value in us', required=True)
+    parser.add_argument('-s', '--save_path', type=str, help='Save path', required=False, default=None)
+    parser.add_argument('-q', '--quiet', help='Do not show plots', action='store_true', required=False)
     return parser.parse_args()
 
 if __name__=="__main__":
