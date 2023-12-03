@@ -493,7 +493,7 @@ class Lens:
         Fundamental Radiometric relation between scene radiance L and the light Irradiance E reaching the pixel sensor
         :param L: Scene Radiance
         :param N: Lens Aperture
-        :param alfa: Off-Axis Angle
+        :param cos_alfa: Cos of Off-Axis Angle
         :return: Irradiance reaching the pixel sensor
         """
         # https://www.cs.cmu.edu/afs/cs/academic/class/16823-s16/www/pdfs/appearance-modeling-2.pdf
