@@ -247,13 +247,20 @@ class LightSource:
         self.name = "Generic LED"
 
         # Led parameters (mean_1, mean_2, std_1, std_2, scale_1, scale_2)
-        params = [450.70, 565.43, 11.67,  64.63,  24.49, 119.86]
+        # params = [450.70, 565.43, 11.67,  64.63,  24.49, 119.86]
+        params = [450.70, 565.43, 5,  60,  10, 100]
         m1, m2, s1, s2, k1, k2 = params
 
         # self.spectral_wav = np.linspace(400, 801, 600)
-        self.spectral_wav = np.linspace(400, 801, 20)
+        self.spectral_wav = np.linspace(400, 801, 30)
         self.spectral_dist = np.array([k1*scipy.stats.norm.pdf(x, loc=m1, scale=s1) + \
                                 k2 * scipy.stats.norm.pdf(x, loc=m2, scale=s2) for x in self.spectral_wav])
+
+        # from matplotlib import pyplot as plt
+        # fig = plt.figure()
+        # ax = fig.add_subplot(111)
+        # ax.plot(self.spectral_wav, self.spectral_dist)
+        # plt.show()
 
         try:
             self.luminousflux = int(luminous_flux)

@@ -193,8 +193,16 @@ def test(args):
     # focal length, transmittance
     model.camera.lens.init_generic_lens(8., 0.9)
 
+    ## Kraken light
+    # light = LightSource()
+    # light.init_generic_led_light(4000., 94.)
+    # light.set_offset([-0.5, 0, 0])
+    # light.set_orientation(np.radians([0, 30, 0]))
+    # model.add_light(light)
+
+    ## Lab lights
     light = LightSource()
-    light.init_generic_led_light(5000., 90.)
+    light.init_generic_led_light(5000., 94.)
     light.set_offset([-0.5, 0, 0])
     light.set_orientation(np.radians([0, 30, 0]))
     model.add_light(light)
@@ -205,15 +213,15 @@ def test(args):
     # light2.set_orientation(np.radians([0, -30, 0]))
     # model.add_light(light2)
 
-    model.scene.water.load_jerlov1C_profile()
-    logging.info("Loaded Jerlov1C profile")
+    model.scene.water.load_jerlovI_profile()
+    logging.info("Loaded JerlovI profile")
 
     model.exposure = args.exposure / 1.0e6
     # model.exposure = 0.01
     model.scene.speed = 0.001 
-    model.scene.altitude = 1.16
+    model.scene.altitude = 1.14
     model.scene.bottom_type = 'Perfect' # manually tune albedo
-    model.aperture = 3.0
+    model.aperture = 2.2
 
     model.update()
 
@@ -224,7 +232,9 @@ def test(args):
 
     digital_response_map, snr_map, snr_ideal_map = raytracer.compute_scene_light_map()
 
-    reflectance = np.array([0.3, 0.45, 0.6])
+    # reflectance = np.array([0.3, 0.45, 0.6])
+    # reflectance = np.array([0.35, 0.55, 0.75]) # tank bottom
+    reflectance = np.array([0.8, 0.76, 0.71]) # white target
 
     digital_response_map = digital_response_map * reflectance
     snr_map = snr_map * np.sqrt(reflectance)
@@ -236,7 +246,8 @@ def test(args):
     ax1.axis('off')
     fig1.subplots_adjust(wspace=0, hspace=0)
 
-    idx = digital_response_map.shape[0] // 2
+    # idx = digital_response_map.shape[0] // 2
+    idx = 650
     px_row = digital_response_map[idx]
 
     fig2 = plt.figure()
@@ -262,9 +273,8 @@ def test(args):
     ax22.set_ylabel('SNR')
 
     if args.image is not None:
-        # read in raw 16bit tif image as float
+        # read in raw 16bit tif image as float. Reads in saved channel order -> RGB
         ground_truth_img = cv2.imread(args.image, cv2.IMREAD_UNCHANGED).astype(np.float32) / 65535.0
-        ground_truth_img = cv2.cvtColor(ground_truth_img, cv2.COLOR_BGR2RGB)
         ax12 = fig1.add_subplot(122)
         ax12.imshow(ground_truth_img)
         ax12.axis('off')
