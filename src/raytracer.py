@@ -202,18 +202,21 @@ def test(args):
 
     ## Lab lights
     light = LightSource()
-    light.init_generic_led_light(5000., 94.)
+    # light.init_generic_led_light(5000., 94.)
+    light.load('../cfg/lights/lab_light.json')
     light.set_offset([-0.5, 0, 0])
     light.set_orientation(np.radians([0, 30, 0]))
     model.add_light(light)
 
     # light2 = LightSource()
-    # light2.init_generic_led_light(5000., 90.)
+    # # light2.init_generic_led_light(5000., 94.)
+    # light2.load('../cfg/lights/lab_light.json')
     # light2.set_offset([0.5, 0, 0])
     # light2.set_orientation(np.radians([0, -30, 0]))
     # model.add_light(light2)
 
-    model.scene.water.load_jerlovI_profile()
+    # model.scene.water.load_jerlovI_profile()
+    model.scene.water.load_pure_profile()
     logging.info("Loaded JerlovI profile")
 
     model.exposure = args.exposure / 1.0e6
@@ -221,7 +224,7 @@ def test(args):
     model.scene.speed = 0.001 
     model.scene.altitude = 1.14
     model.scene.bottom_type = 'Perfect' # manually tune albedo
-    model.aperture = 2.2
+    model.aperture = 2.4
 
     model.update()
 
@@ -234,7 +237,7 @@ def test(args):
 
     # reflectance = np.array([0.3, 0.45, 0.6])
     # reflectance = np.array([0.35, 0.55, 0.75]) # tank bottom
-    reflectance = np.array([0.8, 0.76, 0.71]) # white target
+    reflectance = np.array([0.73, 0.77, 0.8]) # white target
 
     digital_response_map = digital_response_map * reflectance
     snr_map = snr_map * np.sqrt(reflectance)

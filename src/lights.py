@@ -240,6 +240,12 @@ class LightSource:
                 self.spectral_wav = np.array([float(x) for x in light_data["wavelengths"]])
                 self.spectral_dist = np.array([float(x) for x in light_data["spectral_distribution"]])
                 self.initialized = True
+
+                # from matplotlib import pyplot as plt
+                # fig = plt.figure()
+                # ax = fig.add_subplot(111)
+                # ax.plot(self.spectral_wav, self.spectral_dist)
+                # plt.show()
             except KeyError as e:
                 print("Error parsing json data for light. Key not found:", e)
 

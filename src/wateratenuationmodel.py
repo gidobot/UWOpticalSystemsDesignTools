@@ -44,6 +44,18 @@ class WaterPropagation:
         distance_map = np.tile(distance_map, (1,1,len(wavelengths)))
         return np.exp(-b*distance_map)
 
+    def load_pure_profile(self):
+        # Kd - downard diffuse attenuation coefficient depends on sun azimuth angle and other factors not
+        # inherent to the physical water properties. However, it also captures the forward scattering
+        # component, whereas the backscatter attenuation coefficient by itself does not capture this. Therefore,
+        # it is inaccurate to assume all scattered light is lost, and Kd provides a compromise in estimating
+        # the true attenuation of the light signal. All light sourced from the irradiated scene that is scattered
+        # contributes to haze, even though it is not "attenuated". A future feature may provide an estimate of
+        # the haze signal. 
+        Kd = [0.17, 0.15, 0.06, 0.01, 0.007, 0.005, 0.01, 0.014, 0.023, 0.048, 0.066, 0.084, 0.250, 0.313, 0.373, 0.452, 0.604]
+        self.attenuation_coef = Kd # np.array(a) + np.array(b)
+        self.initialized = True
+
     def load_jerlovI_profile(self):
         # Kd - downard diffuse attenuation coefficient depends on sun azimuth angle and other factors not
         # inherent to the physical water properties. However, it also captures the forward scattering

@@ -68,7 +68,9 @@ class Sensor:
                     self.quantum_efficiency_wav, self.quantum_efficiency = \
                         self.compute_combined_color_quantum_efficiency()
                     # fig1, ax1 = plt.subplots()
-                    # ax1.plot(self.quantum_efficiency_wav["mono"], self.quantum_efficiency["mono"], '--x')
+                    # ax1.plot(self.quantum_efficiency_wav_color["red"], self.quantum_efficiency_color["red"])
+                    # ax1.plot(self.quantum_efficiency_wav_color["green"], self.quantum_efficiency_color["green"])
+                    # ax1.plot(self.quantum_efficiency_wav_color["blue"], self.quantum_efficiency_color["blue"])
                     # plt.show()
                 else:
                     return False
