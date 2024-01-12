@@ -215,8 +215,8 @@ def test(args):
     # light2.set_orientation(np.radians([0, -30, 0]))
     # model.add_light(light2)
 
-    # model.scene.water.load_jerlovI_profile()
-    model.scene.water.load_pure_profile()
+    model.scene.water.load_jerlovI_profile()
+    # model.scene.water.load_pure_profile()
     logging.info("Loaded JerlovI profile")
 
     model.exposure = args.exposure / 1.0e6
