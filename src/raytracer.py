@@ -192,6 +192,7 @@ def test(args):
     model.camera.sensor.load('../cfg/sensors/imx264C.json')
     # focal length, transmittance
     model.camera.lens.init_generic_lens(8., 0.9)
+    # model.camera.lens.init_generic_lens(6., 0.9)
 
     ## Kraken light
     # light = LightSource()
@@ -201,12 +202,12 @@ def test(args):
     # model.add_light(light)
 
     ## Lab lights
-    light = LightSource()
-    # light.init_generic_led_light(5000., 94.)
-    light.load('../cfg/lights/lab_light.json')
-    light.set_offset([-0.5, 0, 0])
-    light.set_orientation(np.radians([0, 30, 0]))
-    model.add_light(light)
+    # light = LightSource()
+    # # light.init_generic_led_light(5000., 94.)
+    # # light.load('../cfg/lights/lab_light.json')
+    # light.set_offset([-0.5, 0, 0])
+    # light.set_orientation(np.radians([0, 30, 0]))
+    # model.add_light(light)
 
     # light2 = LightSource()
     # # light2.init_generic_led_light(5000., 94.)
@@ -215,16 +216,36 @@ def test(args):
     # light2.set_orientation(np.radians([0, -30, 0]))
     # model.add_light(light2)
 
+    ## Lab lights in air
+    light = LightSource()
+    light.load('../cfg/lights/lab_light_air.json')
+    light.set_offset([0, 0, 0])
+    light.set_orientation(np.radians([0, 0, 0]))
+    model.add_light(light)
+
     model.scene.water.load_jerlovI_profile()
-    # model.scene.water.load_pure_profile()
     logging.info("Loaded JerlovI profile")
+    # model.scene.water.load_pure_profile()
+    # model.scene.water.load_tank_profile()
+    # logging.info("Loaded tank profile")
+
+    # model.scene.water.load_air_profile()
+    # logging.info("Loaded air profile")
 
     model.exposure = args.exposure / 1.0e6
     # model.exposure = 0.01
     model.scene.speed = 0.001 
-    model.scene.altitude = 1.14
+    # model.scene.altitude = 1.14 # tank
+    model.scene.altitude = 1.94 # air
     model.scene.bottom_type = 'Perfect' # manually tune albedo
-    model.aperture = 2.4
+    model.aperture = 1.4
+    # model.aperture = 2.0
+    # model.aperture = 2.8
+    # model.aperture = 2.5
+    # model.aperture = 4.0
+    # model.aperture = 8.0
+    # model.aperture = 11.0
+    # model.aperture = 16.0
 
     model.update()
 
@@ -237,7 +258,7 @@ def test(args):
 
     # reflectance = np.array([0.3, 0.45, 0.6])
     # reflectance = np.array([0.35, 0.55, 0.75]) # tank bottom
-    reflectance = np.array([0.73, 0.77, 0.8]) # white target
+    reflectance = np.array([0.73, 0.73, 0.8]) # white target
 
     digital_response_map = digital_response_map * reflectance
     snr_map = snr_map * np.sqrt(reflectance)
@@ -250,7 +271,8 @@ def test(args):
     fig1.subplots_adjust(wspace=0, hspace=0)
 
     # idx = digital_response_map.shape[0] // 2
-    idx = 650
+    # idx = 900
+    idx = 690
     px_row = digital_response_map[idx]
 
     fig2 = plt.figure()
