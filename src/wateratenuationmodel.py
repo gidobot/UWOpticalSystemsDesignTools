@@ -69,11 +69,11 @@ class WaterPropagation:
         Kd = [0.17, 0.15, 0.06, 0.01, 0.007, 0.005, 0.01, 0.014, 0.023, 0.048, 0.066, 0.084, 0.15, 0.15, 0.2, 0.28, 0.28]
         self.attenuation_coef = Kd # np.array(a) + np.array(b)
         self.initialized = True
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.plot(self.jerlov_wavelenths, Kd)
-        plt.show()
+        # import matplotlib.pyplot as plt
+        # fig = plt.figure()
+        # ax = fig.add_subplot(111)
+        # ax.plot(self.jerlov_wavelenths, Kd)
+        # plt.show()
 
     def load_pure_profile(self):
         # Kd - downard diffuse attenuation coefficient depends on sun azimuth angle and other factors not
@@ -86,11 +86,11 @@ class WaterPropagation:
         Kd = [0.17, 0.15, 0.06, 0.01, 0.007, 0.005, 0.01, 0.014, 0.023, 0.048, 0.066, 0.084, 0.250, 0.313, 0.373, 0.452, 0.604]
         self.attenuation_coef = Kd # np.array(a) + np.array(b)
         self.initialized = True
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.plot(self.jerlov_wavelenths, Kd)
-        plt.show()
+        # import matplotlib.pyplot as plt
+        # fig = plt.figure()
+        # ax = fig.add_subplot(111)
+        # ax.plot(self.jerlov_wavelenths, Kd)
+        # plt.show()
 
     def load_jerlovI_profile(self):
         # Kd - downard diffuse attenuation coefficient depends on sun azimuth angle and other factors not
