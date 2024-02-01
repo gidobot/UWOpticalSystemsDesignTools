@@ -18,7 +18,7 @@ class Raytracer:
     def __init__(self, model):
         self.model = model
 
-        # create initial planar depth map at 2 meters depth
+        # create initial planar depth map
         self.depth_map = np.ones((int(model.camera.sensor.resolution_y), int(model.camera.sensor.resolution_x))) * model.scene.altitude
         # create initial surface normal map with unit vector along negative z axis (towards camera)
         self.surface_normal_map = np.ones((int(model.camera.sensor.resolution_y), int(model.camera.sensor.resolution_x), 3)) * np.array([0.0, 0.0, -1.0])
@@ -223,14 +223,14 @@ def test(args):
     light.set_orientation(np.radians([0, 0, 0]))
     model.add_light(light)
 
-    model.scene.water.load_jerlovI_profile()
-    logging.info("Loaded JerlovI profile")
+    # model.scene.water.load_jerlovI_profile()
+    # logging.info("Loaded JerlovI profile")
     # model.scene.water.load_pure_profile()
     # model.scene.water.load_tank_profile()
     # logging.info("Loaded tank profile")
 
-    # model.scene.water.load_air_profile()
-    # logging.info("Loaded air profile")
+    model.scene.water.load_air_profile()
+    logging.info("Loaded air profile")
 
     model.exposure = args.exposure / 1.0e6
     # model.exposure = 0.01
