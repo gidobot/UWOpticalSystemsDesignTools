@@ -202,12 +202,12 @@ def test(args):
     # model.add_light(light)
 
     ## Lab lights
-    # light = LightSource()
-    # # light.init_generic_led_light(5000., 94.)
-    # # light.load('../cfg/lights/lab_light.json')
-    # light.set_offset([-0.5, 0, 0])
-    # light.set_orientation(np.radians([0, 30, 0]))
-    # model.add_light(light)
+    light = LightSource()
+    # light.init_generic_led_light(5000., 94.)
+    light.load('../cfg/lights/lab_light.json')
+    light.set_offset([-0.5, 0, 0])
+    light.set_orientation(np.radians([0, 30, 0]))
+    model.add_light(light)
 
     # light2 = LightSource()
     # # light2.init_generic_led_light(5000., 94.)
@@ -216,29 +216,31 @@ def test(args):
     # light2.set_orientation(np.radians([0, -30, 0]))
     # model.add_light(light2)
 
-    ## Lab lights in air
-    light = LightSource()
-    light.load('../cfg/lights/lab_light_air.json')
-    light.set_offset([0, 0, 0])
-    light.set_orientation(np.radians([0, 0, 0]))
-    model.add_light(light)
-
-    model.scene.water.load_jerlovI_profile()
-    logging.info("Loaded JerlovI profile")
-    # model.scene.water.load_pure_profile()
-    # model.scene.water.load_tank_profile()
-    # logging.info("Loaded tank profile")
+    # ## Lab lights in air
+    # light = LightSource()
+    # light.load('../cfg/lights/lab_light_air.json')
+    # light.set_offset([0, 0, 0])
+    # light.set_orientation(np.radians([0, 0, 0]))
+    # model.add_light(light)
 
     # model.scene.water.load_air_profile()
     # logging.info("Loaded air profile")
 
+    # model.scene.water.load_jerlovI_profile()
+    # logging.info("Loaded JerlovI profile")
+    # model.scene.water.load_jerlov1C_profile()
+    # logging.info("Loaded Jerlov1C profile")
+    # model.scene.water.load_pure_profile()
+    model.scene.water.load_tank_profile()
+    logging.info("Loaded tank profile")
+
     model.exposure = args.exposure / 1.0e6
     # model.exposure = 0.01
     model.scene.speed = 0.001 
-    # model.scene.altitude = 1.14 # tank
-    model.scene.altitude = 1.94 # air
+    model.scene.altitude = 1.14 # tank
+    # model.scene.altitude = 1.94 # air
     model.scene.bottom_type = 'Perfect' # manually tune albedo
-    model.aperture = 1.4
+    # model.aperture = 1.4
     # model.aperture = 2.0
     # model.aperture = 2.8
     # model.aperture = 2.5
@@ -272,7 +274,8 @@ def test(args):
 
     # idx = digital_response_map.shape[0] // 2
     # idx = 900
-    idx = 690
+    # idx = 660
+    idx = 830
     px_row = digital_response_map[idx]
 
     fig2 = plt.figure()

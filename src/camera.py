@@ -445,6 +445,11 @@ class Lens:
 
         self.initialized = False
 
+        # self.ir_filter = True
+        self.ir_filter = False 
+        self.ir_cut_wav = [300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800]
+        self.ir_cut     = [.00, .70, .87, .89, .90, .85, .62, .28, .09, .03, .02]
+
     def load(self, file_path):
         """
         Load json with lens parameters
@@ -476,7 +481,11 @@ class Lens:
         :param wave_length:
         :return: Transmittance at given wavelength as a fraction
         """
-        return np.interp(wave_length, self.transmittance_wav, self.transmittance)
+        if self.ir_filter:
+            factor = np.interp(wave_length, self.ir_cut_wav, self.ir_cut)
+        else:
+            factor = 1.0
+        return factor*np.interp(wave_length, self.transmittance_wav, self.transmittance)
 
     # https://www.cs.cmu.edu/afs/cs/academic/class/16823-s16/www/pdfs/appearance-modeling-2.pdf
     def fundamental_radiometric_relation(self, L, N, alfa):
