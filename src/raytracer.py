@@ -19,7 +19,7 @@ class Raytracer:
         self.model = model
 
         # create initial planar depth map at 2 meters depth
-        self.depth_map = np.ones((int(model.camera.sensor.resolution_y), int(model.camera.sensor.resolution_x))) * 1.16
+        self.depth_map = np.ones((int(model.camera.sensor.resolution_y), int(model.camera.sensor.resolution_x))) * model.scene.altitude
         # create initial surface normal map with unit vector along negative z axis (towards camera)
         self.surface_normal_map = np.ones((int(model.camera.sensor.resolution_y), int(model.camera.sensor.resolution_x), 3)) * np.array([0.0, 0.0, -1.0])
 
