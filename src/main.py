@@ -234,7 +234,7 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         if os.path.isfile(filename):
             if lens.load(filename):
                 self.lensLoadedFileLabel.setText(lens.name)
-                self.focalLengthLineEdit.setText(("%f" % lens.focal_length))
+                self.focalLengthLineEdit.setText(("%.1f" % lens.focal_length))
                 self.transmittanceLineEdit.setText(("%f" % lens.transmittance))
                 logging.info("Loaded Lens.")
                 self.updateModel()
@@ -245,20 +245,21 @@ class UnderwaterOpticalCalculatorApp(QtWidgets.QMainWindow, mainwindow.Ui_MainWi
         changed
         :return: None
         """
-        f = float(self.focalLengthSlider.value())
+        f = float(self.focalLengthSlider.value()/10.)
         t = float(self.transmittanceSlider.value())/100.
         self.model.camera.lens.init_generic_lens(f, t)
-        self.focalLengthLineEdit.setText(("%i" % self.focalLengthSlider.value()))
+        self.focalLengthLineEdit.setText(("%.1f" % (self.focalLengthSlider.value()/10.)))
         self.transmittanceLineEdit.setText(("%i" % self.transmittanceSlider.value()))
         logging.info("Created generic lens with focal length %i and transmittance value of %f.",f,t)
         self.updateModel()
 
     def on_focal_length_change(self):
         try:
-            self.focalLengthSlider.setValue(int(self.focalLengthLineEdit.text()))
+            self.focalLengthSlider.setValue(float(self.focalLengthLineEdit.text())*10)
             self.on_generic_lens_sliders()
         except Exception as e:
-            self.focalLengthLineEdit.setText(("%i" % self.focalLengthSlider.value()))
+            print(e)
+            self.focalLengthLineEdit.setText(("%.1f" % (self.focalLengthSlider.value()/10.)))
 
     def on_transmittance_change(self):
         try:
